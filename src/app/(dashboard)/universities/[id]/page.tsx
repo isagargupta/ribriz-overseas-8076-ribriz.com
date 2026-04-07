@@ -10,6 +10,7 @@ import {
 } from "@/lib/scoring";
 import { getUniversityLogoUrl } from "@/lib/university-logo";
 import { ApplyNowButton } from "@/components/ui/apply-now-btn";
+import { fetchExternalProgramById } from "@/lib/external-university-api";
 import type { AuditParameter, AuditRoadmapItem } from "@/lib/scoring";
 
 export default async function UniversityDetailPage({
@@ -22,11 +23,15 @@ export default async function UniversityDetailPage({
   const user = await getUser();
   if (!user) redirect("/login");
 
+  const isExternal = id.startsWith("ext-prog-");
+
   const [program, dbUser] = await Promise.all([
-    prisma.program.findUnique({
-      where: { id },
-      include: { university: true },
-    }),
+    isExternal
+      ? fetchExternalProgramById(id)
+      : prisma.program.findUnique({
+          where: { id },
+          include: { university: true },
+        }),
     prisma.user.findUnique({
       where: { id: user.id },
       include: { academicProfile: true, preferences: true },

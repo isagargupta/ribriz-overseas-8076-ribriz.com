@@ -200,6 +200,31 @@ export async function fetchExternalUniversityById(
   }
 }
 
+/**
+ * Fetch a single external program by its synthetic ID (e.g. "ext-prog-4486").
+ * Returns the Program with its University attached, or null if not found.
+ */
+export async function fetchExternalProgramById(
+  syntheticId: string
+): Promise<(Program & { university: University }) | null> {
+  const match = syntheticId.match(/^ext-prog-(\d+)$/);
+  if (!match) return null;
+
+  const courseId = Number(match[1]);
+  try {
+    const course = await apiFetch<ExtCourse>(`/courses/${courseId}`);
+    const extUni = await apiFetch<ExtUniversity>(
+      `/universities/${course.university_id}`
+    );
+    const uni = mapUniversity(extUni);
+    const degreeLevel = degreeIdToDegreeLevel(course.degree_id);
+    const program = mapProgram(course, uni, degreeLevel);
+    return { ...program, university: uni };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Public API ────────────────────────────────────────
 
 // ─── Related field expansion ───────────────────────────

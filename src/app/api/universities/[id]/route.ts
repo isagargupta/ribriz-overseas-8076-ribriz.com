@@ -8,6 +8,7 @@ import {
   formatLivingCost,
   formatDeadline,
 } from "@/lib/scoring";
+import { fetchExternalProgramById } from "@/lib/external-university-api";
 
 export async function GET(
   _request: Request,
@@ -25,11 +26,15 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const isExternal = id.startsWith("ext-prog-");
+
     const [program, dbUser] = await Promise.all([
-      prisma.program.findUnique({
-        where: { id },
-        include: { university: true },
-      }),
+      isExternal
+        ? fetchExternalProgramById(id)
+        : prisma.program.findUnique({
+            where: { id },
+            include: { university: true },
+          }),
       prisma.user.findUnique({
         where: { id: user.id },
         include: { academicProfile: true, preferences: true },
