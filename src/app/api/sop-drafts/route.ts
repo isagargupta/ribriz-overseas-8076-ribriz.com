@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
+import { materializeExternalProgram } from "@/lib/external-university-api";
 
 export async function GET(request: Request) {
   try {
@@ -44,19 +45,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "programId and content required" }, { status: 400 });
     }
 
+    // For external programs, materialize into local DB first
+    let localProgramId = programId;
+    if (programId.startsWith("ext-prog-")) {
+      const materialized = await materializeExternalProgram(programId);
+      if (!materialized) {
+        return NextResponse.json({ error: "Program not found" }, { status: 404 });
+      }
+      localProgramId = materialized.id;
+    }
+
     // Validate program exists
-    const program = await prisma.program.findUnique({ where: { id: programId } });
+    const program = await prisma.program.findUnique({ where: { id: localProgramId } });
     if (!program) {
       return NextResponse.json({ error: "Program not found" }, { status: 404 });
     }
 
     // Find or create application for this program
     let app = await prisma.application.findFirst({
-      where: { userId: user.id, programId },
+      where: { userId: user.id, programId: localProgramId },
     });
     if (!app) {
       app = await prisma.application.create({
-        data: { userId: user.id, programId, status: "sop_pending" },
+        data: { userId: user.id, programId: localProgramId, status: "sop_pending" },
       });
     }
 

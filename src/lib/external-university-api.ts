@@ -6,6 +6,7 @@
  * so scoring, matching, and UI code works unchanged.
  */
 
+import { createHash } from "crypto";
 import type {
   University,
   Program,
@@ -19,6 +20,24 @@ function getApiConfig() {
   const url = process.env.UNIVERSITY_API_URL || "https://university.wyriz.dev/api/v1";
   const key = process.env.UNIVERSITY_API_KEY || "";
   return { url, key };
+}
+
+/**
+ * Generate a deterministic UUID from a string (e.g. "ext-uni-42").
+ * Uses SHA-256 truncated to UUID v4 format so the same external ID
+ * always produces the same UUID, letting us upsert safely.
+ */
+function externalIdToUuid(externalId: string): string {
+  const hash = createHash("sha256").update(externalId).digest("hex");
+  const v = "4"; // version nibble
+  const r = ((parseInt(hash[16], 16) & 0x3) | 0x8).toString(16); // variant
+  return [
+    hash.slice(0, 8),
+    hash.slice(8, 12),
+    v + hash.slice(13, 16),
+    r + hash.slice(17, 20),
+    hash.slice(20, 32),
+  ].join("-");
 }
 
 // ─── External API response types ───────────────────────
@@ -223,6 +242,65 @@ export async function fetchExternalProgramById(
   } catch {
     return null;
   }
+}
+
+/**
+ * Ensure an external program (and its university) exist in the local DB
+ * so that Application and other FK-constrained records can reference it.
+ *
+ * Uses deterministic UUIDs derived from the external IDs, so repeated
+ * calls for the same program are idempotent upserts.
+ *
+ * Returns the local Program (with university) or null if the external
+ * fetch failed.
+ */
+export async function materializeExternalProgram(
+  syntheticId: string
+): Promise<(Program & { university: University }) | null> {
+  const match = syntheticId.match(/^ext-prog-(\d+)$/);
+  if (!match) return null;
+
+  const courseId = Number(match[1]);
+  let course: ExtCourse;
+  let extUni: ExtUniversity;
+  try {
+    course = await apiFetch<ExtCourse>(`/courses/${courseId}`);
+    extUni = await apiFetch<ExtUniversity>(
+      `/universities/${course.university_id}`
+    );
+  } catch {
+    return null;
+  }
+
+  // Lazy-import prisma to avoid circular deps at module level
+  const { prisma } = await import("@/lib/db");
+
+  const uniId = externalIdToUuid(`ext-uni-${extUni.id}`);
+  const progId = externalIdToUuid(syntheticId);
+  const degreeLevel = degreeIdToDegreeLevel(course.degree_id);
+  const mappedUni = mapUniversity(extUni);
+  const mappedProg = mapProgram(course, { ...mappedUni, id: uniId }, degreeLevel);
+
+  // Upsert university
+  await prisma.university.upsert({
+    where: { id: uniId },
+    create: { ...mappedUni, id: uniId },
+    update: { name: mappedUni.name, country: mappedUni.country, city: mappedUni.city },
+  });
+
+  // Upsert program
+  await prisma.program.upsert({
+    where: { id: progId },
+    create: { ...mappedProg, id: progId, universityId: uniId },
+    update: { name: mappedProg.name, tuitionAnnual: mappedProg.tuitionAnnual },
+  });
+
+  const program = await prisma.program.findUnique({
+    where: { id: progId },
+    include: { university: true },
+  });
+
+  return program;
 }
 
 // ─── Public API ────────────────────────────────────────
