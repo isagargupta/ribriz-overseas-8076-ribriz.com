@@ -1,4 +1,4 @@
-import { resend, FROM_EMAIL } from "./resend";
+import { getResend, FROM_EMAIL } from "./resend";
 
 export async function sendEmail({
   to,
@@ -9,7 +9,7 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject,
