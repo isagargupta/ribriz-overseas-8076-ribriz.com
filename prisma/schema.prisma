@@ -1,0 +1,779 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum SubscriptionTier {
+  free
+  explorer
+  pro
+  premium
+}
+
+enum GpaScale {
+  scale_10
+  scale_4
+  scale_100
+}
+
+enum BudgetRange {
+  under_5L
+  five_10L
+  ten_20L
+  twenty_40L
+  above_40L
+}
+
+enum DegreeLevel {
+  masters
+  mba
+  bachelors
+  phd
+}
+
+enum ApplicationStatus {
+  not_started
+  docs_pending
+  sop_pending
+  ready
+  applied
+  decision
+  enrolled
+}
+
+enum Decision {
+  accepted
+  rejected
+  waitlisted
+}
+
+enum DocumentCategory {
+  academic
+  test_scores
+  identity
+  financial
+  application
+}
+
+enum DocumentStatus {
+  not_started
+  in_progress
+  uploaded
+  verified
+}
+
+// ─── ML & Agentic Enums ─────────────────────────────────
+
+enum AgentTaskStatus {
+  pending
+  running
+  completed
+  failed
+  cancelled
+}
+
+enum AgentTaskType {
+  auto_suggest_universities
+  auto_admission_audit
+  auto_advance_status
+  auto_deadline_reminder
+  auto_portfolio_rebalance
+  auto_document_quality
+  auto_profile_gap_check
+}
+
+// ─── Core Entities ───────────────────────────────────────
+
+model User {
+  id                 String           @id @default(uuid()) @db.Uuid
+  email              String           @unique
+  name               String
+  phone              String?
+  city               String?
+  dob                DateTime?        @db.Date
+  gender             String?
+  nationality        String?
+  countryOfResidence String?
+
+  // Visa & compliance
+  passportNumber       String?
+  passportExpiry       DateTime?        @db.Date
+  countriesVisited     String[]         @default([])
+  visaRejections       Boolean          @default(false)
+  visaRejectionDetails String?
+
+  createdAt          DateTime         @default(now())
+  onboardingComplete      Boolean          @default(false)
+  subscriptionTier        SubscriptionTier @default(free)
+  notificationPreferences Json?
+
+  academicProfile  AcademicProfile?
+  preferences      Preferences?
+  financialProfile FinancialProfile?
+  applications     Application[]
+  documents        Document[]
+  sopDrafts        SOPDraft[]
+  appDocuments     ApplicationDocument[]
+  threads          ConversationThread[]
+  alerts           ProactiveAlert[]
+  agentTasks       AgentTask[]
+  studentVector    StudentVector?
+
+  // Agent system relations
+  consentRequests    ConsentRequest[]
+  memoryEntries      MemoryEntry[]
+  applicationScores  ApplicationScore[]
+  scholarshipMatches ScholarshipMatch[]
+  emailDrafts        EmailDraft[]
+}
+
+model AcademicProfile {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @db.Uuid
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tenthPercentage      Float?
+  twelfthPercentage    Float?
+  degreeName           String
+  specialization       String?
+  collegeName          String
+  universityRanking    String?
+  gpa                  Float
+  gpaScale             GpaScale
+  graduationYear       Int
+  backlogs             Int      @default(0)
+  workExperienceMonths Int      @default(0)
+
+  // Test scores
+  ieltsScore           Float?
+  toeflScore           Int?
+  pteScore             Int?
+  duolingoScore        Int?
+  satScore             Int?
+  greScore             Int?
+  greVerbal            Int?
+  greQuant             Int?
+  gmatScore            Int?
+  plannedTests         String[] @default([])
+
+  // Work & internship details
+  currentCompany       String?
+  currentJobTitle      String?
+  keyAchievements      String?
+  leadershipRoles      String?
+  internshipDetails    String?
+
+  // Extracurriculars & achievements
+  clubs                String?
+  competitions         String?
+  volunteering         String?
+  sportsArtsHobbies    String?
+  publications         String?
+  certifications       String[]  @default([])
+}
+
+model Preferences {
+  id                String      @id @default(uuid()) @db.Uuid
+  userId            String      @unique @db.Uuid
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  targetCountries       String[]
+  targetField           String
+  targetDegreeLevel     DegreeLevel
+  budgetRange           BudgetRange
+  targetIntake          String
+  preferredUniversities String[]    @default([])
+  extracurriculars      String[]    @default([])
+  careerGoals           String?
+
+  // Story & positioning
+  whyThisField     String?
+  whyThisCountry   String?
+  whyNow           String?
+  shortTermGoals   String?
+  longTermGoals    String?
+  uniqueStory      String?
+  scholarshipPref  String?
+}
+
+model FinancialProfile {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @db.Uuid
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  familyIncomeRange  String?
+  sponsorType        String?
+  sponsorDetails     String?
+  savingsRange       String?
+  loanPlanned        Boolean  @default(false)
+  loanDetails        String?
+  budgetForTuition   String?
+  scholarshipPref    String?
+}
+
+model University {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  country          String
+  city             String
+  qsRanking        Int?
+  theRanking       Int?
+  acceptanceRate   Float?
+  websiteUrl       String?
+  countryFlagEmoji String?
+  logoUrl          String?
+  type             String?   // "public" | "private" | "research"
+
+  // Enriched info
+  overview           String?
+  campusSize         String?
+  totalStudents      Int?
+  internationalPct   Float?
+  studentFacultyRatio String?
+  researchOutput     String?   // "very high" | "high" | "medium"
+
+  // Post-study & visa
+  postStudyWorkVisa    String?  // e.g. "18 months" or "2 years PSW"
+  avgPostGradSalary    Float?
+  avgPostGradSalaryCcy String?
+  employmentRate       Float?   // % employed within 6 months
+
+  // Application logistics
+  applicationPortalUrl String?
+  generalAppFee        Float?
+  generalAppFeeCcy     String?   @default("USD")
+  acceptsCommonApp     Boolean   @default(false)
+
+  // Data freshness
+  lastEnrichedAt     DateTime?
+  enrichmentSource   String?    // "ai" | "manual" | "api"
+
+  programs Program[]
+
+  @@index([country])
+  @@index([qsRanking])
+  @@index([name])
+}
+
+model Program {
+  id                  String      @id @default(uuid()) @db.Uuid
+  universityId        String      @db.Uuid
+  university          University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  name                String
+  degreeLevel         DegreeLevel
+  field               String
+  subField            String?      // e.g. "Machine Learning", "Cloud Computing"
+  durationMonths      Int
+  tuitionAnnual       Float
+  tuitionCurrency     String        @default("EUR")
+  livingCostMonthly   Float?
+  applicationUrl      String?
+
+  // Admission requirements (expanded)
+  minGpa              Float?
+  minGpaScale         GpaScale?     // what scale is minGpa on
+  minIelts            Float?
+  minToefl            Int?
+  minPte              Int?
+  minGre              Int?
+  minGmat             Int?
+  requiresGre         Boolean       @default(false)
+  requiresGmat        Boolean       @default(false)
+  minWorkExpMonths    Int?           // minimum work experience required
+  backlogsAllowed     Int?           // max backlogs allowed, null = not specified
+  requiresLor         Int?           // number of recommendation letters required
+  requiresSop         Boolean        @default(true)
+  requiresResume      Boolean        @default(true)
+  requiresPortfolio   Boolean        @default(false)
+
+  // Deadlines & intakes (multiple rounds)
+  applicationDeadline DateTime?     @db.Date
+  earlyDeadline       DateTime?     @db.Date
+  intake              String?
+  intakesAvailable    String[]      @default([]) // ["Fall 2027", "Spring 2028"]
+  applicationFee      Float?
+  applicationFeeCcy   String?
+
+  // Scholarships & funding
+  scholarshipsCount   Int           @default(0)
+  scholarshipDetails  String?       // brief description of available scholarships
+  hasAssistantship    Boolean       @default(false)
+  hasFellowship       Boolean       @default(false)
+
+  // Outcome data
+  avgAdmitGpa         Float?        // average GPA of admitted students
+  avgAdmitGre         Int?
+  placementRate       Float?        // % placed within 6 months
+
+  // Curriculum
+  stemDesignated      Boolean       @default(false) // US OPT extension
+  thesisOption        Boolean       @default(false)
+  coopInternship      Boolean       @default(false) // built-in internship
+  onlineMixed         Boolean       @default(false) // hybrid/online option
+  courseHighlights     String[]      @default([])     // key courses
+
+  // Data freshness
+  lastVerifiedAt      DateTime?
+  dataSource          String?       // "ai" | "manual" | "university_website"
+
+  applications Application[]
+
+  @@index([universityId])
+  @@index([degreeLevel, field])
+  @@index([field, subField])
+}
+
+model Application {
+  id          String            @id @default(uuid()) @db.Uuid
+  userId      String            @db.Uuid
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programId   String            @db.Uuid
+  program     Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  status      ApplicationStatus @default(not_started)
+  matchScore  Float?
+  appliedDate DateTime?         @db.Date
+  decision    Decision?
+  notes       String?
+  createdAt   DateTime          @default(now())
+
+  sopDrafts         SOPDraft[]
+  appDocuments      ApplicationDocument[]
+  outcome           AdmissionOutcome?
+  applicationScores ApplicationScore[]
+
+  @@index([userId])
+  @@index([programId])
+  @@index([status])
+}
+
+model Document {
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @db.Uuid
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name       String
+  category   DocumentCategory
+  isRequired Boolean          @default(true)
+  status     DocumentStatus   @default(not_started)
+  fileUrl    String?
+  uploadedAt DateTime?
+  notes      String?
+
+  @@index([userId])
+  @@index([userId, category])
+}
+
+model SOPDraft {
+  id               String      @id @default(uuid()) @db.Uuid
+  userId           String      @db.Uuid
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId    String      @db.Uuid
+  application      Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  targetUniversity String
+  content          String      @default("")
+  wordCount        Int         @default(0)
+  guidedAnswers    Json?
+  version          Int         @default(1)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([applicationId])
+}
+
+// ─── Application Document Engine ────────────────────────
+// Every document (SOP, LOR, CV, essay, motivation letter) is
+// relationally tied to a user, application, and program.
+// Documents are editable like Google Docs with auto-save,
+// versioning, and context-aware AI suggestions.
+
+enum AppDocType {
+  sop              // Statement of Purpose
+  lor              // Letter of Recommendation
+  motivation       // Motivation Letter
+  cv               // Resume / CV
+  essay            // Supplemental Essay
+  research         // Research Proposal
+  portfolio        // Portfolio description
+  cover_letter     // Cover Letter
+  other
+}
+
+model ApplicationDocument {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId   String      @db.Uuid
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type            AppDocType
+  title           String          // e.g. "SOP for MIT — CS"
+  content         String          @default("")  // current working content
+  wordCount       Int             @default(0)
+  guidedAnswers   Json?           // answers to guided questions (SOP)
+  templateUsed    String?         // which template was used to seed this
+
+  // Context — this is what makes each doc unique per university
+  universityName  String          // denormalized for quick display
+  programName     String          // denormalized
+  country         String          // determines tone/style hints
+
+  // Status
+  isDraft         Boolean         @default(true)
+  isComplete      Boolean         @default(false)
+  lastEditedAt    DateTime        @default(now())
+
+  // AI quality scoring
+  qualityScore    Float?
+  qualityData     Json?           // Full DocumentQualityScore object
+  lastScoredAt    DateTime?
+
+  // Versioning
+  currentVersion  Int             @default(1)
+  versions        DocumentVersion[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([applicationId])
+  @@index([applicationId, type])
+  @@unique([applicationId, type, title])
+}
+
+model DocumentVersion {
+  id              String               @id @default(uuid()) @db.Uuid
+  documentId      String               @db.Uuid
+  document        ApplicationDocument  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  version         Int
+  content         String
+  wordCount       Int                  @default(0)
+  changeNote      String?              // "AI generated draft" or "Manual edit"
+
+  createdAt       DateTime             @default(now())
+
+  @@index([documentId])
+  @@index([documentId, version])
+}
+
+// ─── Agentic System ─────────────────────────────────────
+
+model ConversationThread {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String    @default("New Conversation")
+  summary     String?   // Rolling summary of key decisions & context
+  topic       String?   // Current topic focus
+  state       Json?     // Serialized agent state: decisions made, open questions, next steps
+  messageCount Int      @default(0)
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  messages    ChatMessage[]
+  agentLogs   AgentLog[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model ChatMessage {
+  id          String    @id @default(uuid()) @db.Uuid
+  threadId    String    @db.Uuid
+  thread      ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  role        String    // "user" | "assistant" | "tool_result"
+  content     String
+  toolCalls   Json?     // Array of tool calls made in this message
+  toolResults Json?     // Results from tool executions
+  metadata    Json?     // Confirmations, thinking steps, etc.
+
+  createdAt   DateTime  @default(now())
+
+  @@index([threadId])
+  @@index([threadId, createdAt])
+}
+
+model AgentLog {
+  id          String    @id @default(uuid()) @db.Uuid
+  threadId    String    @db.Uuid
+  thread      ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId      String    @db.Uuid
+
+  action      String    // "plan", "tool_call", "tool_result", "confirmation", "error", "thinking"
+  toolName    String?
+  input       Json?
+  output      Json?
+  reasoning   String?   // Why the agent chose this action
+  durationMs  Int?
+  success     Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([threadId])
+  @@index([userId, createdAt])
+}
+
+model ProactiveAlert {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        String    // "deadline_approaching", "missing_document", "new_scholarship", "profile_incomplete", "status_update"
+  title       String
+  body        String
+  priority    String    @default("medium") // "low", "medium", "high", "urgent"
+  actionUrl   String?   // Deep link to relevant page
+  metadata    Json?     // Additional context
+
+  isRead      Boolean   @default(false)
+  isDismissed Boolean   @default(false)
+
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  @@index([userId, isRead])
+  @@index([userId, type])
+}
+
+// ─── ML & Learning System ───────────────────────────────
+
+model AdmissionOutcome {
+  id                      String    @id @default(uuid()) @db.Uuid
+  applicationId           String    @unique @db.Uuid
+  application             Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Snapshot at time of application (immutable)
+  profileSnapshot         Json      // { gpa, gpaScale, ielts, toefl, gre, gmat, workExpMonths, backlogs, degreeName, collegeName }
+  programSnapshot         Json      // { universityName, programName, country, field, qsRanking, minGpa, minIelts, acceptanceRate }
+  matchScoreAtApplication Float     // the score computeMatchScore gave at application time
+  bucket                  String    // "safety" | "target" | "reach" | "long_shot"
+
+  // Actual outcome
+  decision                Decision
+  decisionDate            DateTime?  @db.Date
+  scholarshipReceived     Boolean    @default(false)
+  scholarshipAmount       Float?
+  notes                   String?
+
+  // Metadata for ML
+  applicationCycle        String?    // e.g. "Fall 2026"
+  submittedAt             DateTime?
+  createdAt               DateTime   @default(now())
+
+  @@index([decision])
+}
+
+model StudentVector {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Normalized feature vector (all 0-1 scale)
+  features        Float[]   // [normalizedGpa, normalizedIelts, normalizedGre, normalizedWorkExp, normalizedBudget, normalizedBacklogs, ...]
+  featureLabels   String[]  // ["gpa", "ielts", "gre", "workExpMonths", "budgetIndex", "backlogs"]
+
+  // Denormalized for filtering
+  country         String[]  // target countries
+  field           String
+  degreeLevel     String
+
+  updatedAt       DateTime  @updatedAt
+
+  @@index([field])
+  @@index([degreeLevel])
+}
+
+model MLCalibration {
+  id                String    @id @default(uuid()) @db.Uuid
+  country           String
+  programTier       String    // "top_50" | "top_100" | "top_200" | "other"
+  field             String    @default("all")
+
+  sampleSize        Int
+  calibrationData   Json      // Full calibration breakdown by score range
+  weightAdjustments Json      // { gpa: 1.15, englishTest: 0.95, ... }
+
+  computedAt        DateTime  @default(now())
+
+  @@unique([country, programTier, field])
+  @@index([country])
+}
+
+model AgentTask {
+  id              String          @id @default(uuid()) @db.Uuid
+  userId          String          @db.Uuid
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            AgentTaskType
+  trigger         String          // Human-readable: "Profile completed", "SOP uploaded for MIT"
+  status          AgentTaskStatus @default(pending)
+
+  // What the agent did
+  toolsUsed       String[]        @default([])
+  result          Json?           // Structured result of the task
+  summary         String?         // Human-readable summary
+
+  // Audit trail
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  error           String?
+
+  // User visibility
+  isNotified      Boolean         @default(false)
+  isRead          Boolean         @default(false)
+  requiresAction  Boolean         @default(false)
+  actionUrl       String?
+
+  createdAt       DateTime        @default(now())
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([type, status])
+}
+
+// ─── Agent Consent & Memory System ──────────────────────
+
+model ConsentRequest {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  threadId        String?   @db.Uuid // Links to the conversation where this was proposed
+  action          String    // "update_profile" | "create_workspace" | "save_sop" | "update_application" etc.
+  description     String    // Human-readable description of what will change
+  payload         Json      // The actual data to write if approved
+  status          String    @default("pending") // "pending" | "approved" | "rejected" | "expired"
+  expiresAt       DateTime  // Auto-expire after 30 minutes
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, status])
+  @@index([threadId])
+}
+
+model MemoryEntry {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key         String    // Category: "career_goal" | "experience" | "preference" | "fact" | "skill" | "concern" | "decision" | "deadline_context"
+  content     String    // The remembered information
+  source      String    // "conversation" | "profile" | "document"
+  sourceId    String?   // Reference to thread or document
+  confidence  Float     @default(1.0) // user-stated = 1.0, inferred = 0.7
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, key])
+  @@unique([userId, key, content])
+}
+
+model ApplicationScore {
+  id                 String      @id @default(uuid()) @db.Uuid
+  applicationId      String      @db.Uuid
+  application        Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  userId             String      @db.Uuid
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  overallScore       Int         // 0-100
+  academicFit        Int         // 0-100
+  sopQuality         Int         // 0-100
+  documentReadiness  Int         // 0-100
+  profilePositioning Int         // 0-100
+  timelineRisk       Int         // 0-100
+  improvements       Json        // Array of { description, impact, priority, actions }
+  strengths          String[]    @default([])
+  redFlags           String[]    @default([])
+  generatedAt        DateTime    @default(now())
+
+  @@index([applicationId])
+  @@index([userId])
+}
+
+// ─── Scholarship Tracking ───────────────────────────────
+
+model Scholarship {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  provider         String    // "DAAD" | "Chevening" | "Erasmus" | university name
+  country          String
+  amount           String    // "Full tuition" | "€10,000/year" etc.
+  currency         String?
+  eligibility      Json      // Structured eligibility criteria
+  deadline         DateTime?
+  applicationUrl   String?
+  description      String?
+  fieldRestriction String?   // "STEM" | "Business" | "Any" etc.
+  degreeLevel      String?   // "masters" | "bachelors" | "phd"
+  isActive         Boolean   @default(true)
+  lastVerified     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  matches ScholarshipMatch[]
+
+  @@index([country, isActive])
+  @@index([deadline])
+}
+
+model ScholarshipMatch {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scholarshipId   String      @db.Uuid
+  scholarship     Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  matchScore      Float       // 0-100
+  eligibilityGaps Json?       // What's missing
+  status          String      @default("discovered") // "discovered" | "interested" | "applying" | "applied" | "awarded" | "rejected"
+  createdAt       DateTime    @default(now())
+
+  @@unique([userId, scholarshipId])
+  @@index([userId, status])
+}
+
+// ─── Email Drafts & University Change Tracking ──────────
+
+model EmailDraft {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId   String?   @db.Uuid
+  type            String    // "admission_query" | "document_clarification" | "deadline_extension" | "professor_outreach" | "lor_reminder" | "status_followup"
+  recipientEmail  String?
+  recipientName   String?
+  subject         String
+  body            String
+  status          String    @default("draft") // "draft" | "approved" | "sent"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, status])
+}
+
+model UniversityChangeLog {
+  id            String    @id @default(uuid()) @db.Uuid
+  universityId  String?   @db.Uuid
+  programId     String?   @db.Uuid
+  field         String    // "deadline" | "tuition" | "requirement" | "scholarship"
+  oldValue      String?
+  newValue      String?
+  detectedAt    DateTime  @default(now())
+  source        String    // "scraper" | "manual" | "user_report" | "api"
+  verified      Boolean   @default(false)
+
+  @@index([universityId, detectedAt])
+  @@index([detectedAt])
+}

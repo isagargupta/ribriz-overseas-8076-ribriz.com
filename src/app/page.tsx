@@ -1,65 +1,192 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import { LandingPage } from "./landing-page";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "RIBRIZ — AI-Powered Study Abroad Platform for Students",
+  description:
+    "Match with universities, predict your admission chances with AI, generate SOPs, and track applications — all without an agent. Free to start. Trusted by 12,000+ students across 15+ countries.",
+  keywords: [
+    "study abroad",
+    "AI university matching",
+    "admission prediction",
+    "SOP generator",
+    "study abroad without agent",
+    "university application platform",
+    "study abroad AI",
+    "RIBRIZ",
+    "overseas education",
+    "MS abroad",
+    "MBA abroad",
+    "study in Canada",
+    "study in Germany",
+    "study in Australia",
+  ],
+  authors: [{ name: "RIBRIZ" }],
+  creator: "RIBRIZ",
+  publisher: "RIBRIZ",
+  metadataBase: new URL("https://ribriz.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://ribriz.com",
+    siteName: "RIBRIZ",
+    title: "RIBRIZ — AI-Powered Study Abroad Platform",
+    description:
+      "Match with universities, predict admission chances, and generate SOPs with AI. No agent needed. Free to start.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "RIBRIZ — AI-Powered Study Abroad Platform for Students",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RIBRIZ — AI-Powered Study Abroad Platform",
+    description:
+      "Match with universities, predict admission chances, and generate SOPs with AI. No agent needed. Free to start.",
+    images: ["/og-image.png"],
+    creator: "@ribriz",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+export default function Page() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "RIBRIZ",
+            applicationCategory: "EducationalApplication",
+            operatingSystem: "Web",
+            description:
+              "AI-powered study abroad platform. Match with universities, predict admission chances, generate SOPs, and track applications — all without an agent.",
+            url: "https://ribriz.com",
+            offers: [
+              {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "INR",
+                name: "Free",
+                description: "Profile assessment, basic search, 3 university matches",
+              },
+              {
+                "@type": "Offer",
+                price: "2999",
+                priceCurrency: "INR",
+                name: "Explorer",
+                description:
+                  "Unlimited matching, admission scoring, document checklists, application tracker",
+              },
+              {
+                "@type": "Offer",
+                price: "9999",
+                priceCurrency: "INR",
+                name: "Pro",
+                description:
+                  "AI SOP assistant, priority support, visa counseling, 1-on-1 expert session",
+              },
+            ],
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: "4.8",
+              ratingCount: "1200",
+              bestRating: "5",
+            },
+            featureList: [
+              "AI university matching",
+              "Admission chance prediction",
+              "AI SOP writer",
+              "Application tracker",
+              "Document management",
+              "Visa guidance",
+            ],
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "RIBRIZ",
+            url: "https://ribriz.com",
+            logo: "https://ribriz.com/favicon.ico",
+            description:
+              "AI-powered study abroad platform helping students apply to universities without agents.",
+            contactPoint: {
+              "@type": "ContactPoint",
+              email: "support@mail.ribriz.com",
+              contactType: "customer support",
+            },
+            sameAs: [],
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "How is RIBRIZ different from a study abroad agent?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Agents earn commissions from universities — so they push institutions that pay them, not the ones right for you. RIBRIZ earns zero from universities. Our recommendations are 100% based on your profile fit. Plus you get AI tools, real-time tracking, and 24/7 access.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Can RIBRIZ actually replace an agent?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "For the vast majority of students, yes. The platform handles university matching, admission scoring, SOP writing, document management, application tracking, and visa guidance.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Is the free plan really free?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "No catch. Free gives you profile assessment and 3 university matches. We make money when students upgrade for unlimited matching and the SOP tools — not from hidden fees or university commissions.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "How accurate is the admission chance scoring?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Our model is trained on historical admission data across 300+ universities. It correctly predicts the outcome 82% of the time with transparent confidence intervals on every score.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
+      <LandingPage />
+    </>
   );
 }
