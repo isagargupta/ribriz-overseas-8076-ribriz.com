@@ -131,6 +131,11 @@ model User {
   applicationScores  ApplicationScore[]
   scholarshipMatches ScholarshipMatch[]
   emailDrafts        EmailDraft[]
+
+  // Phase 4 features
+  candidateRoadmaps  CandidateRoadmap[]
+  interviewSessions  InterviewSession[]
+  warRoomSimulations WarRoomSimulation[]
 }
 
 model AcademicProfile {
@@ -761,6 +766,66 @@ model EmailDraft {
   updatedAt       DateTime  @updatedAt
 
   @@index([userId, status])
+}
+
+// ─── Candidate Builder (Long-Horizon Planner) ──────────
+
+model CandidateRoadmap {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  targetDate      DateTime  @db.Date         // When they plan to apply
+  targetPrograms  String[]  @default([])     // University + program names
+  milestones      Json      // Array of { month, title, description, category, completed, completedAt }
+  status          String    @default("active") // "active" | "paused" | "completed"
+  lastReviewedAt  DateTime?
+  generatedByAI   Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, status])
+}
+
+// ─── Interview Prep Sessions ────────────────────────────
+
+model InterviewSession {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            String    // "visa" | "university" | "scholarship"
+  country         String?
+  universityName  String?
+  questionsAsked  Json      // Array of { question, answer, feedback, score }
+  overallScore    Int?      // 0-100
+  summary         String?
+  durationSeconds Int?
+
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ─── War Room Simulations ───────────────────────────────
+
+model WarRoomSimulation {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId   String    @db.Uuid
+
+  personas        Json      // Array of { name, role, verdict, confidence, reasoning, concerns, strengths }
+  finalVerdict    String?   // "admit" | "waitlist" | "reject"
+  finalConfidence Int?      // 0-100
+  synthesis       String?   // Orchestrator's summary
+  improvements    Json?     // Top 3 things to improve
+
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+  @@index([applicationId])
 }
 
 model UniversityChangeLog {

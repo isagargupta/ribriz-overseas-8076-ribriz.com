@@ -145,6 +145,31 @@ export function statusUpdateEmail(
   };
 }
 
+// ─── OTP Verification ────────────────────────────────────
+
+export function otpEmail(otp: string, type: "login" | "signup") {
+  const action = type === "signup" ? "verify your new account" : "sign in to your account";
+  return {
+    subject: `${otp} is your RIBRIZ verification code`,
+    html: layout(`
+      <h1 style="font-size:24px;font-weight:800;color:#00113b;margin-bottom:8px;">
+        Your verification code
+      </h1>
+      <p style="color:#45474c;font-size:15px;">
+        Use the code below to ${action}. It expires in <strong>10 minutes</strong>.
+      </p>
+      <div style="text-align:center;margin:32px 0;">
+        <div style="display:inline-block;background:#f0f0ff;border:1px solid #e2e7ff;border-radius:16px;padding:24px 48px;">
+          <span style="font-size:48px;font-weight:800;letter-spacing:0.25em;color:#4648d4;font-family:monospace;">${otp}</span>
+        </div>
+      </div>
+      <p style="color:#75777d;font-size:13px;text-align:center;">
+        Never share this code with anyone. RIBRIZ will never ask for it.
+      </p>
+    `),
+  };
+}
+
 // ─── Profile Incomplete Nudge ────────────────────────────
 
 export function profileNudgeEmail(name: string, completionPct: number) {

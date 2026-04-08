@@ -23,17 +23,17 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-      },
+    const res = await fetch("/api/auth/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, type: "login" }),
     });
+    const data = await res.json();
 
     setLoading(false);
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data.error || "Failed to send verification code");
     } else {
       setStep("otp");
     }

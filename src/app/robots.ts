@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/dashboard/", "/applications/", "/documents/", "/editor/", "/settings/", "/onboarding/", "/sop-writer/", "/riz-ai/", "/workspaces/", "/visa/", "/scholarships/"],
+        disallow: ["/api/", "/dashboard/", "/applications/", "/documents/", "/editor/", "/settings/", "/onboarding/", "/sop-writer/", "/riz-ai/", "/workspaces/", "/visa/", "/scholarships/", "/candidate-builder/", "/interview-prep/", "/war-room/"],
       },
     ],
     sitemap: "https://ribriz.com/sitemap.xml",

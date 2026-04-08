@@ -36,21 +36,12 @@ export const metadata: Metadata = {
     title: "RIBRIZ — AI-Powered Study Abroad Platform",
     description:
       "Match with universities, predict admission chances, and generate SOPs with AI. No agent needed. Free to start.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "RIBRIZ — AI-Powered Study Abroad Platform for Students",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "RIBRIZ — AI-Powered Study Abroad Platform",
     description:
       "Match with universities, predict admission chances, and generate SOPs with AI. No agent needed. Free to start.",
-    images: ["/og-image.png"],
     creator: "@ribriz",
   },
   robots: {

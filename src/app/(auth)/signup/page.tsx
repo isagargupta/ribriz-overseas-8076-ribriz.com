@@ -24,25 +24,18 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name },
-      },
+    const res = await fetch("/api/auth/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, type: "signup", name, password }),
     });
+    const data = await res.json();
 
     setLoading(false);
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data.error || "Failed to send verification code");
     } else {
-      // Send welcome email (fire-and-forget)
-      fetch("/api/email/welcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      }).catch((e) => console.error("Welcome email failed:", e));
       setStep("verify");
     }
   };
@@ -61,21 +54,30 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      // Create Prisma User record
-      await fetch("/api/user/sync", { method: "POST" }).catch((e) => console.error("User sync failed:", e));
-      router.push("/onboarding");
-      router.refresh();
+      return;
     }
+
+    // Create Prisma User record & send welcome email (fire-and-forget)
+    await fetch("/api/user/sync", { method: "POST" }).catch((e) => console.error("User sync failed:", e));
+    fetch("/api/email/welcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name }),
+    }).catch((e) => console.error("Welcome email failed:", e));
+
+    router.push("/onboarding");
+    router.refresh();
   };
 
   const handleResendOTP = async () => {
     setError("");
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email,
+    const res = await fetch("/api/auth/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, type: "signup", name, password }),
     });
-    if (error) setError(error.message);
+    const data = await res.json();
+    if (!res.ok) setError(data.error || "Failed to resend code");
   };
 
   const handleGoogleSignup = async () => {
