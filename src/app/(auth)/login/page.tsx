@@ -44,20 +44,21 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: "email",
+    const res = await fetch("/api/auth/otp/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ otp }),
     });
+    const data = await res.json();
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data.error || "Verification failed");
       setLoading(false);
-    } else {
-      await fetch("/api/user/sync", { method: "POST" }).catch((e) => console.error("User sync failed:", e));
-      router.push("/dashboard");
-      router.refresh();
+      return;
     }
+
+    router.push(data.redirect ?? "/dashboard");
+    router.refresh();
   };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {

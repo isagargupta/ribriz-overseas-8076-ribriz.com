@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, ArrowLeft, Sparkles, GraduationCap, FileText, BarChart3 } from "lucide-react";
@@ -17,7 +16,6 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,27 +43,20 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: "signup",
+    const res = await fetch("/api/auth/otp/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ otp }),
     });
+    const data = await res.json();
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(data.error || "Verification failed");
       setLoading(false);
       return;
     }
 
-    // Create Prisma User record & send welcome email (fire-and-forget)
-    await fetch("/api/user/sync", { method: "POST" }).catch((e) => console.error("User sync failed:", e));
-    fetch("/api/email/welcome", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name }),
-    }).catch((e) => console.error("Welcome email failed:", e));
-
-    router.push("/onboarding");
+    router.push(data.redirect ?? "/onboarding");
     router.refresh();
   };
 
@@ -81,6 +72,8 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignup = async () => {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
