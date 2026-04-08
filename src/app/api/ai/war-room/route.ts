@@ -209,7 +209,7 @@ Return JSON ONLY:
       data: {
         userId: user.id,
         applicationId,
-        personas: personaResults,
+        personas: personaResults as unknown as import("@/generated/prisma/client").Prisma.InputJsonValue,
         finalVerdict: synthesis.finalVerdict || "waitlist",
         finalConfidence: synthesis.finalConfidence || 50,
         synthesis: synthesis.synthesis || "",

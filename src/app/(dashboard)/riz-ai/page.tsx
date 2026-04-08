@@ -19,15 +19,13 @@ interface SpeechRecognitionLike {
   stop(): void;
   onresult: ((event: any) => void) | null;
   onend: (() => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: any) => void) | null;
 }
 
-declare global {
-  interface Window {
-    SpeechRecognition: new () => SpeechRecognitionLike;
-    webkitSpeechRecognition: new () => SpeechRecognitionLike;
-  }
-}
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: new () => SpeechRecognitionLike;
+  webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+};
 
 interface ToolActivity { name: string; label: string; status: "running" | "done"; }
 interface ThinkingStep { step: number; message: string; }
@@ -118,7 +116,8 @@ export default function RizAIPage() {
     const supported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
     setSpeechSupported(supported);
     if (supported) {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const w = window as SpeechRecognitionWindow;
+      const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
       const recognition = new SR();
       recognition.continuous = false;
       recognition.interimResults = true;

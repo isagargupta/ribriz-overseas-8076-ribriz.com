@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
 import { otpEmail } from "@/lib/email/templates";
-import crypto from "crypto";
+import crypto from "node:crypto";
+
+export const runtime = "nodejs";
 
 const SECRET = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const OTP_COOKIE = "ribriz_otp_state";

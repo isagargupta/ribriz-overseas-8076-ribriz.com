@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
-import crypto from "crypto";
+import crypto from "node:crypto";
+
+export const runtime = "nodejs";
 
 const SECRET = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const OTP_COOKIE = "ribriz_otp_state";
