@@ -69,6 +69,8 @@ export default function Image() {
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div
             style={{
+              display: "flex",
+              flexDirection: "column",
               color: "white",
               fontSize: "68px",
               fontWeight: 800,
@@ -76,9 +78,8 @@ export default function Image() {
               letterSpacing: "-2px",
             }}
           >
-            Study Abroad,
-            <br />
-            Powered by AI.
+            <span>Study Abroad,</span>
+            <span>Powered by AI.</span>
           </div>
           <div
             style={{
