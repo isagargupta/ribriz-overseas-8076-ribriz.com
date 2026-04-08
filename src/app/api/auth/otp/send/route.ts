@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/send";
 import { otpEmail } from "@/lib/email/templates";
 import crypto from "node:crypto";
 
 export const runtime = "nodejs";
 
-const SECRET = () => process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const OTP_COOKIE = "ribriz_otp_state";
 
-function generateOtp(): string {
-  return String(crypto.randomInt(100000, 999999));
-}
-
-function signState(payload: object): string {
+function signState(payload: object, secret: string): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const sig = crypto.createHmac("sha256", SECRET()).update(data).digest("hex");
+  const sig = crypto.createHmac("sha256", secret).update(data).digest("hex");
   return `${data}.${sig}`;
 }
 
@@ -32,69 +26,39 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  if (type === "signup" && !password) {
+    return NextResponse.json({ error: "Password is required" }, { status: 400 });
+  }
+
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const otp = String(crypto.randomInt(100000, 999999));
+  const otpHash = crypto.createHmac("sha256", secret).update(otp).digest("hex");
+
+  const state = signState({
+    email,
+    otp_hash: otpHash,
+    type,
+    name: name ?? "",
+    password: type === "signup" ? password : undefined,
+    exp: Date.now() + 10 * 60 * 1000,
+  }, secret);
+
+  // Send OTP email via Resend
   try {
-    const admin = createAdminClient();
-    let hashedToken: string | undefined;
-    let verificationToken: string;
-
-    if (type === "signup") {
-      if (!password) {
-        return NextResponse.json({ error: "Password is required" }, { status: 400 });
-      }
-      const { data, error } = await admin.auth.admin.generateLink({
-        type: "signup",
-        email,
-        password,
-        options: { data: { full_name: name || "" } },
-      });
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-      hashedToken = data.properties?.hashed_token;
-      verificationToken = data.properties?.hashed_token ?? "";
-    } else {
-      const { data, error } = await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-      });
-      if (error) {
-        // Don't reveal if user doesn't exist — still show OTP screen
-        return NextResponse.json({ success: true });
-      }
-      hashedToken = data.properties?.hashed_token;
-      verificationToken = data.properties?.hashed_token ?? "";
-    }
-
-    if (!hashedToken) {
-      return NextResponse.json({ error: "Failed to generate verification token" }, { status: 500 });
-    }
-
-    const otp = generateOtp();
-    const otpHash = crypto.createHmac("sha256", SECRET()).update(otp).digest("hex");
-
-    const state = signState({
-      email,
-      otp_hash: otpHash,
-      hashed_token: verificationToken,
-      verification_type: type === "signup" ? "signup" : "magiclink",
-      name: name || "",
-      exp: Date.now() + 10 * 60 * 1000, // 10 minutes
-    });
-
     const template = otpEmail(otp, type);
     await sendEmail({ to: email, subject: template.subject, html: template.html });
-
-    const response = NextResponse.json({ success: true });
-    response.cookies.set(OTP_COOKIE, state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 600,
-      path: "/",
-    });
-    return response;
   } catch (err) {
-    console.error("OTP send error:", err);
-    return NextResponse.json({ error: "Failed to send verification code" }, { status: 500 });
+    console.error("Email send failed:", err);
+    return NextResponse.json({ error: "Failed to send verification code. Please try again." }, { status: 500 });
   }
+
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(OTP_COOKIE, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 600,
+    path: "/",
+  });
+  return response;
 }
