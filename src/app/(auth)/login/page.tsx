@@ -19,23 +19,37 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const postJSON = async (url: string, body: object) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      return { ok: res.ok, data };
+    } catch {
+      return { ok: false, data: { error: "Request timed out. Please try again." } };
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
   const handleSendOTP = async () => {
     setError("");
     setLoading(true);
-
-    const res = await fetch("/api/auth/otp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, type: "login" }),
-    });
-    const data = await res.json();
-
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error || "Failed to send verification code");
-    } else {
-      setStep("otp");
+    try {
+      const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "login" });
+      if (!ok) {
+        setError(data.error || "Failed to send code");
+      } else {
+        setStep("otp");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,22 +57,19 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
-    const res = await fetch("/api/auth/otp/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ otp }),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "Verification failed");
+    try {
+      const { ok, data } = await postJSON("/api/auth/otp/verify", { otp });
+      if (!ok) {
+        setError(data.error || "Verification failed");
+        return;
+      }
+      router.push(data.redirect ?? "/dashboard");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push(data.redirect ?? "/dashboard");
-    router.refresh();
   };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {

@@ -17,24 +17,38 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const postJSON = async (url: string, body: object) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      return { ok: res.ok, data };
+    } catch {
+      return { ok: false, data: { error: "Request timed out. Please try again." } };
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
-    const res = await fetch("/api/auth/otp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, type: "signup", name, password }),
-    });
-    const data = await res.json();
-
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error || "Failed to send verification code");
-    } else {
-      setStep("verify");
+    try {
+      const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "signup", name, password });
+      if (!ok) {
+        setError(data.error || "Failed to send verification code");
+      } else {
+        setStep("verify");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,33 +56,25 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
-    const res = await fetch("/api/auth/otp/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ otp }),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "Verification failed");
+    try {
+      const { ok, data } = await postJSON("/api/auth/otp/verify", { otp });
+      if (!ok) {
+        setError(data.error || "Verification failed");
+        return;
+      }
+      router.push(data.redirect ?? "/onboarding");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push(data.redirect ?? "/onboarding");
-    router.refresh();
   };
 
   const handleResendOTP = async () => {
     setError("");
-    const res = await fetch("/api/auth/otp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, type: "signup", name, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) setError(data.error || "Failed to resend code");
+    const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "signup", name, password });
+    if (!ok) setError(data.error || "Failed to resend code");
   };
 
   const handleGoogleSignup = async () => {
