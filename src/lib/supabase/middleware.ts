@@ -39,7 +39,10 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/signup";
   const isPublicPage =
-    request.nextUrl.pathname === "/" || isAuthPage;
+    request.nextUrl.pathname === "/" ||
+    isAuthPage ||
+    request.nextUrl.pathname.startsWith("/api/auth/") ||
+    request.nextUrl.pathname.startsWith("/auth/");
 
   // Protected routes: redirect to /login if not authenticated
   if (!user && !isPublicPage) {

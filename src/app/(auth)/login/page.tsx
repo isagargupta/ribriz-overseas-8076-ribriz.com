@@ -4,15 +4,13 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail, KeyRound, ArrowLeft, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, Mail, ArrowLeft, Sparkles } from "lucide-react";
 
-type Step = "email" | "method" | "otp" | "password";
+type Step = "email" | "otp";
 
 export default function LoginPage() {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,16 +27,23 @@ export default function LoginPage() {
         body: JSON.stringify(body),
         signal: controller.signal,
       });
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        console.error(`Non-JSON response from ${url}:`, res.status, await res.text());
+        return { ok: false, data: { error: "Server error. Please try again." } };
+      }
       const data = await res.json();
       return { ok: res.ok, data };
-    } catch {
-      return { ok: false, data: { error: "Request timed out. Please try again." } };
+    } catch (err) {
+      const isTimeout = err instanceof DOMException && err.name === "AbortError";
+      return { ok: false, data: { error: isTimeout ? "Request timed out. Please try again." : "Something went wrong. Please try again." } };
     } finally {
       clearTimeout(timeout);
     }
   };
 
-  const handleSendOTP = async () => {
+  const handleSendOTP = async (e?: { preventDefault(): void }) => {
+    e?.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -53,7 +58,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -72,26 +77,6 @@ export default function LoginPage() {
     }
   };
 
-  const handlePasswordLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      await fetch("/api/user/sync", { method: "POST" }).catch((e) => console.error("User sync failed:", e));
-      router.push("/dashboard");
-      router.refresh();
-    }
-  };
-
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -100,12 +85,6 @@ export default function LoginPage() {
       },
     });
     if (error) setError(error.message);
-  };
-
-  const goBack = () => {
-    setError("");
-    if (step === "otp" || step === "password") setStep("method");
-    else if (step === "method") setStep("email");
   };
 
   return (
@@ -165,18 +144,16 @@ export default function LoginPage() {
             </h1>
             <p className="text-on-surface-variant text-sm mt-2 font-medium">
               {step === "email" && "Sign in to continue your study abroad journey"}
-              {step === "method" && `Signing in as ${email}`}
               {step === "otp" && "Enter the code we sent to your email"}
-              {step === "password" && "Enter your password"}
             </p>
           </div>
 
           {/* Card */}
           <div className="surface-elevated rounded-2xl p-7">
             {/* Back button */}
-            {step !== "email" && (
+            {step === "otp" && (
               <button
-                onClick={goBack}
+                onClick={() => { setStep("email"); setError(""); setOtp(""); }}
                 className="flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-primary font-medium mb-6 transition-colors"
               >
                 <ArrowLeft size={14} /> Back
@@ -186,7 +163,6 @@ export default function LoginPage() {
             {/* ── Step 1: Email ── */}
             {step === "email" && (
               <>
-                {/* Google OAuth */}
                 <button
                   onClick={handleGoogleLogin}
                   className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-surface-low border border-outline/30 rounded-xl text-sm font-semibold text-on-surface hover:bg-surface hover:border-outline/50 transition-all"
@@ -211,13 +187,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (email) setStep("method");
-                  }}
-                  className="space-y-4"
-                >
+                <form onSubmit={handleSendOTP} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">
                       Email Address
@@ -241,65 +211,17 @@ export default function LoginPage() {
 
                   <button
                     type="submit"
-                    className="btn-primary w-full py-3 text-sm"
+                    disabled={loading}
+                    className="btn-primary w-full py-3 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Continue
+                    {loading && <Loader2 size={16} className="animate-spin" />}
+                    Send Login Code
                   </button>
                 </form>
               </>
             )}
 
-            {/* ── Step 2: Choose method ── */}
-            {step === "method" && (
-              <div className="space-y-3">
-                <p className="text-xs text-on-surface-variant font-medium mb-4">
-                  How would you like to sign in?
-                </p>
-
-                <button
-                  onClick={handleSendOTP}
-                  disabled={loading}
-                  className="w-full flex items-center gap-4 p-4 bg-surface-low rounded-xl hover:bg-surface transition-all border border-transparent hover:border-primary/10 text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-primary/[0.06] text-primary flex items-center justify-center shrink-0">
-                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                      Email me a login code
-                    </p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">
-                      We&apos;ll send a 6-digit code to {email}
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setStep("password")}
-                  className="w-full flex items-center gap-4 p-4 bg-surface-low rounded-xl hover:bg-surface transition-all border border-transparent hover:border-primary/10 text-left group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-accent/[0.06] text-accent flex items-center justify-center shrink-0">
-                    <KeyRound size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                      Use password
-                    </p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">
-                      Sign in with your account password
-                    </p>
-                  </div>
-                </button>
-
-                {error && (
-                  <p className="text-sm text-error font-medium bg-error/[0.04] border border-error/10 rounded-xl px-4 py-2.5">
-                    {error}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* ── Step 3a: OTP Verification ── */}
+            {/* ── Step 2: OTP Verification ── */}
             {step === "otp" && (
               <form onSubmit={handleVerifyOTP} className="space-y-4">
                 <div className="flex items-center gap-3 p-4 bg-emerald-500/[0.04] border border-emerald-500/10 rounded-xl mb-2">
@@ -342,46 +264,18 @@ export default function LoginPage() {
 
                 <button
                   type="button"
-                  onClick={handleSendOTP}
+                  onClick={() => handleSendOTP()}
                   disabled={loading}
-                  className="w-full text-xs text-on-surface-variant hover:text-primary font-medium py-2 transition-colors"
+                  className="w-full text-xs text-on-surface-variant hover:text-primary font-medium py-2 transition-colors disabled:cursor-not-allowed"
                 >
-                  Didn&apos;t receive the code? Resend
-                </button>
-              </form>
-            )}
-
-            {/* ── Step 3b: Password ── */}
-            {step === "password" && (
-              <form onSubmit={handlePasswordLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="input-premium w-full"
-                    autoFocus
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-sm text-error font-medium bg-error/[0.04] border border-error/10 rounded-xl px-4 py-2.5">
-                    {error}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary w-full py-3 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading && <Loader2 size={16} className="animate-spin" />}
-                  Sign In
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 size={12} className="animate-spin" />
+                      Sending...
+                    </span>
+                  ) : (
+                    "Didn&apos;t receive the code? Resend"
+                  )}
                 </button>
               </form>
             )}

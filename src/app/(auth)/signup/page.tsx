@@ -11,7 +11,6 @@ export default function SignupPage() {
   const [step, setStep] = useState<Step>("form");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,21 +26,27 @@ export default function SignupPage() {
         body: JSON.stringify(body),
         signal: controller.signal,
       });
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        console.error(`Non-JSON response from ${url}:`, res.status, await res.text());
+        return { ok: false, data: { error: "Server error. Please try again." } };
+      }
       const data = await res.json();
       return { ok: res.ok, data };
-    } catch {
-      return { ok: false, data: { error: "Request timed out. Please try again." } };
+    } catch (err) {
+      const isTimeout = err instanceof DOMException && err.name === "AbortError";
+      return { ok: false, data: { error: isTimeout ? "Request timed out. Please try again." : "Something went wrong. Please try again." } };
     } finally {
       clearTimeout(timeout);
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "signup", name, password });
+      const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "signup", name });
       if (!ok) {
         setError(data.error || "Failed to send verification code");
       } else {
@@ -52,7 +57,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -73,7 +78,7 @@ export default function SignupPage() {
 
   const handleResendOTP = async () => {
     setError("");
-    const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "signup", name, password });
+    const { ok, data } = await postJSON("/api/auth/otp/send", { email, type: "signup", name });
     if (!ok) setError(data.error || "Failed to resend code");
   };
 
@@ -225,20 +230,6 @@ export default function SignupPage() {
                       className="input-premium w-full"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      required
-                      minLength={6}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Min 6 characters"
-                      className="input-premium w-full"
-                    />
-                  </div>
 
                   {error && (
                     <p className="text-sm text-error font-medium bg-error/[0.04] border border-error/10 rounded-xl px-4 py-2.5">
@@ -310,9 +301,17 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={handleResendOTP}
-                    className="w-full text-xs text-on-surface-variant hover:text-primary font-medium py-2 transition-colors"
+                    disabled={loading}
+                    className="w-full text-xs text-on-surface-variant hover:text-primary font-medium py-2 transition-colors disabled:cursor-not-allowed"
                   >
-                    Didn&apos;t receive the code? Resend
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 size={12} className="animate-spin" />
+                        Sending...
+                      </span>
+                    ) : (
+                      "Didn&apos;t receive the code? Resend"
+                    )}
                   </button>
                 </form>
               </>
