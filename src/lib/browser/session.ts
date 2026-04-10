@@ -1,7 +1,16 @@
 import Browserbase from "@browserbasehq/sdk";
 import { chromium, Browser, Page } from "playwright-core";
 
-const bb = new Browserbase({ apiKey: process.env.BROWSERBASE_API_KEY! });
+let bb: Browserbase | null = null;
+function getBb(): Browserbase {
+  if (!bb) {
+    if (!process.env.BROWSERBASE_API_KEY) {
+      throw new Error("BROWSERBASE_API_KEY environment variable is not set");
+    }
+    bb = new Browserbase({ apiKey: process.env.BROWSERBASE_API_KEY });
+  }
+  return bb;
+}
 
 export interface BrowserSession {
   sessionId: string;       // Browserbase session ID
@@ -48,7 +57,7 @@ export async function createSession(userId: string, applicationId: string): Prom
   }
 
   // 1. Create Browserbase session
-  const bbSession = await bb.sessions.create({
+  const bbSession = await getBb().sessions.create({
     projectId: process.env.BROWSERBASE_PROJECT_ID!,
   });
 
@@ -59,7 +68,7 @@ export async function createSession(userId: string, applicationId: string): Prom
 
   // 3. Get the live view URL — use page-level URL (clean viewport, no DevTools chrome)
   //    Must happen after CDP connect so pages[] is populated
-  const liveUrls = await bb.sessions.debug(bbSession.id);
+  const liveUrls = await getBb().sessions.debug(bbSession.id);
   const liveViewUrl =
     liveUrls.pages[0]?.debuggerFullscreenUrl ??
     liveUrls.debuggerFullscreenUrl;
