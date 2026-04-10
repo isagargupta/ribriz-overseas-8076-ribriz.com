@@ -113,6 +113,10 @@ model User {
   subscriptionTier        SubscriptionTier @default(free)
   notificationPreferences Json?
 
+  // Assisted application consent
+  assistedApplyConsentAt      DateTime?
+  assistedApplyConsentVersion Int       @default(0)
+
   academicProfile  AcademicProfile?
   preferences      Preferences?
   financialProfile FinancialProfile?
@@ -353,6 +357,7 @@ model Application {
   appDocuments      ApplicationDocument[]
   outcome           AdmissionOutcome?
   applicationScores ApplicationScore[]
+  automationLogs    ApplicationAutomationLog[]
 
   @@index([userId])
   @@index([programId])
@@ -826,6 +831,28 @@ model WarRoomSimulation {
 
   @@index([userId])
   @@index([applicationId])
+}
+
+// ─── Assisted Application Audit Log ────────────────────
+
+model ApplicationAutomationLog {
+  id            String      @id @default(cuid())
+  applicationId String      @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  sessionId     String
+  action        String      // "navigate" | "fill_field" | "click" | "upload" | "blocked" | "manual_required" | "paused" | "resumed"
+  fieldName     String?
+  fieldSelector String?
+  valueHash     String?     // SHA-256 of filled value — never store plain text for sensitive fields
+  confidence    Float?
+  status        String      // "success" | "error" | "skipped" | "manual"
+  errorMessage  String?
+  screenshotKey String?     // storage key if screenshot captured at this moment
+  pageUrl       String?
+  createdAt     DateTime    @default(now())
+
+  @@index([applicationId])
+  @@index([sessionId])
 }
 
 model UniversityChangeLog {

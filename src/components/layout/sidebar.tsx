@@ -14,6 +14,7 @@ const navGroups = [
   [
     { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
     { label: "Riz AI", href: "/riz-ai", icon: "psychology" },
+    { label: "Counselor", href: "/counselor", icon: "support_agent" },
     { label: "Applications", href: "/applications", icon: "description" },
   ],
   [

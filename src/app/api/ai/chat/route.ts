@@ -21,7 +21,7 @@ import {
 import type Anthropic from "@anthropic-ai/sdk";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 30;
+const RATE_LIMIT = 200;
 const WINDOW_MS = 60 * 60 * 1000;
 
 interface ChatMessage {
