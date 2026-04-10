@@ -134,6 +134,7 @@ export default function CounselorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [stage, setStage] = useState<CounselorStage>("intake");
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Consent
   const [showConsent, setShowConsent] = useState(false);
@@ -148,6 +149,8 @@ export default function CounselorPage() {
   const [needsStudent, setNeedsStudent] = useState<NeedsStudentData | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
+  // All pending applications (for multi-app shortlist support)
+  const [pendingApplications, setPendingApplications] = useState<Array<{ id: string; university: string; program: string; status: string }>>([]);
   const [isComputerLoading, setIsComputerLoading] = useState(false);
   const [copilotActive, setCopilotActive] = useState(false);
 
@@ -155,37 +158,113 @@ export default function CounselorPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const computerAbortRef = useRef<AbortController | null>(null);
+  const initDoneRef = useRef(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Restore persisted state on mount
+  // ─── Single init: restore all state + load history ─────────────────────────
   useEffect(() => {
-    const consented = localStorage.getItem("ribriz_assist_consent");
-    if (consented === "1") setHasConsented(true);
+    if (initDoneRef.current) return;
+    initDoneRef.current = true;
 
-    // Restore active session/application from sessionStorage (survives same-tab navigation)
-    const savedSession = sessionStorage.getItem("counselor_sessionId");
-    const savedApp = sessionStorage.getItem("counselor_appId");
-    const savedUrl = sessionStorage.getItem("counselor_portalUrl");
-    const savedLiveView = sessionStorage.getItem("counselor_liveViewUrl");
-    if (savedSession) { setSessionId(savedSession); setStage("applying"); }
-    if (savedApp) setActiveApplicationId(savedApp);
-    if (savedUrl) setCurrentPortalUrl(savedUrl);
-    if (savedLiveView) setLiveViewUrl(savedLiveView);
+    async function initializeCounselor() {
+      // Consent
+      const consented = localStorage.getItem("ribriz_assist_consent");
+      if (consented === "1") setHasConsented(true);
+
+      // Restore active browser session (sessionStorage: same-tab only, intentional)
+      const savedSession = sessionStorage.getItem("counselor_sessionId");
+      const savedUrl = sessionStorage.getItem("counselor_portalUrl");
+      const savedLiveView = sessionStorage.getItem("counselor_liveViewUrl");
+      if (savedSession) setSessionId(savedSession);
+      if (savedUrl) setCurrentPortalUrl(savedUrl);
+      if (savedLiveView) setLiveViewUrl(savedLiveView);
+
+      // Restore thread + application state from localStorage (cross-session)
+      const savedThreadId = localStorage.getItem("counselor_threadId");
+      const savedAppId = localStorage.getItem("counselor_appId");
+      if (savedAppId) setActiveApplicationId(savedAppId);
+
+      // Fetch init state from server: latest thread + pending applications
+      try {
+        const url = savedThreadId
+          ? `/api/ai/counselor?threadId=${encodeURIComponent(savedThreadId)}`
+          : "/api/ai/counselor";
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+
+          // Restore thread
+          if (data.threadId) {
+            setThreadId(data.threadId);
+            localStorage.setItem("counselor_threadId", data.threadId);
+          }
+
+          // Hydrate message history
+          if (data.messages?.length > 0) {
+            const hydratedMessages: Message[] = data.messages.map((m: { id?: string; role: string; content: string }) => ({
+              id: m.id ?? crypto.randomUUID(),
+              role: m.role as "user" | "assistant",
+              content: m.content,
+              timestamp: new Date(),
+            }));
+            setMessages(hydratedMessages);
+
+            // Infer stage from last few messages
+            const lastAssistant = [...hydratedMessages].reverse().find((m) => m.role === "assistant");
+            if (lastAssistant) detectStageFromContent(lastAssistant.content);
+          }
+
+          // Load applications list
+          if (data.applications?.length > 0) {
+            setPendingApplications(data.applications);
+            // Set active app: prefer localStorage-saved one, else most recent
+            if (savedAppId && data.applications.find((a: { id: string }) => a.id === savedAppId)) {
+              setActiveApplicationId(savedAppId);
+            } else {
+              const firstPending = data.applications[0];
+              setActiveApplicationId(firstPending.id);
+              localStorage.setItem("counselor_appId", firstPending.id);
+            }
+          }
+
+          setIsInitializing(false);
+
+          // Start fresh only if no history
+          if (!data.messages?.length) {
+            sendMessage(OPENING_MESSAGE);
+          }
+        } else {
+          setIsInitializing(false);
+          sendMessage(OPENING_MESSAGE);
+        }
+      } catch {
+        setIsInitializing(false);
+        sendMessage(OPENING_MESSAGE);
+      }
+    }
+
+    initializeCounselor();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist session to sessionStorage whenever it changes
+  // Persist threadId to localStorage whenever it changes
+  useEffect(() => {
+    if (threadId) localStorage.setItem("counselor_threadId", threadId);
+  }, [threadId]);
+
+  // Persist activeApplicationId to localStorage whenever it changes
+  useEffect(() => {
+    if (activeApplicationId) localStorage.setItem("counselor_appId", activeApplicationId);
+  }, [activeApplicationId]);
+
+  // Persist browser session to sessionStorage (intentionally tab-scoped)
   useEffect(() => {
     if (sessionId) sessionStorage.setItem("counselor_sessionId", sessionId);
     else sessionStorage.removeItem("counselor_sessionId");
   }, [sessionId]);
-
-  useEffect(() => {
-    if (activeApplicationId) sessionStorage.setItem("counselor_appId", activeApplicationId);
-    else sessionStorage.removeItem("counselor_appId");
-  }, [activeApplicationId]);
 
   useEffect(() => {
     if (currentPortalUrl) sessionStorage.setItem("counselor_portalUrl", currentPortalUrl);
@@ -196,7 +275,7 @@ export default function CounselorPage() {
     else sessionStorage.removeItem("counselor_liveViewUrl");
   }, [liveViewUrl]);
 
-  // Warn before leaving if session is active
+  // Warn before leaving if browser session is active
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (sessionId) {
@@ -208,21 +287,37 @@ export default function CounselorPage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [sessionId]);
 
-  // Auto-send opening message on first load
-  useEffect(() => {
-    if (messages.length === 0) {
-      sendMessage(OPENING_MESSAGE);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // ─── Detect stage from AI messages ─────────────────────────────────────────
+  // NOTE: "applying" stage is only set when the computer mode is actually running
+  // (driven by liveViewUrl/sessionId), NOT from AI text alone — to prevent hiding
+  // the "Start Application" button before a real session exists.
 
   const detectStageFromContent = (content: string) => {
     const lower = content.toLowerCase();
-    if (lower.includes("analysis") || lower.includes("eligibility") || lower.includes("match score")) setStage("analysis");
-    else if (lower.includes("shortlist") || lower.includes("safety") || lower.includes("target school") || lower.includes("reach school")) setStage("shortlist");
-    else if (lower.includes("assisted application") || lower.includes("open each portal") || lower.includes("start apply")) setStage("applying");
+    if (lower.includes("analysis") || lower.includes("eligibility") || lower.includes("match score")) {
+      setStage("analysis");
+    } else if (
+      lower.includes("shortlist") ||
+      lower.includes("safety") ||
+      lower.includes("target school") ||
+      lower.includes("reach school") ||
+      // Also advance to shortlist when the AI is discussing assisted application but no session yet
+      lower.includes("assisted application") ||
+      lower.includes("open each portal") ||
+      lower.includes("start apply")
+    ) {
+      // Only move to "applying" stage if there's an actual live session
+      setStage((prev) => {
+        if (
+          (lower.includes("assisted application") || lower.includes("open each portal") || lower.includes("start apply")) &&
+          (liveViewUrl || sessionId)
+        ) {
+          return "applying";
+        }
+        if (prev === "applying" || prev === "done") return prev;
+        return "shortlist";
+      });
+    }
   };
 
   // ─── Send chat message ──────────────────────────────────────────────────────
@@ -323,7 +418,16 @@ export default function CounselorPage() {
       if (data.success) {
         // Capture applicationId from any tool that returns one
         const appId = data.result?.applicationId;
-        if (appId) setActiveApplicationId(appId);
+        if (appId) {
+          setActiveApplicationId(appId);
+          // Also add to pendingApplications list if not already there
+          setPendingApplications((prev) => {
+            if (prev.find((a) => a.id === appId)) return prev;
+            const university = (action.toolInput.universityName as string) ?? "University";
+            const program = (action.toolInput.programName as string) ?? "Program";
+            return [{ id: appId, university, program, status: "not_started" }, ...prev];
+          });
+        }
 
         const isShortlistOrWorkspace =
           action.toolName === "shortlist_program" || action.toolName === "create_workspace";
@@ -388,8 +492,8 @@ export default function CounselorPage() {
       setShowConsent(true);
       return;
     }
-    setStage("applying");
     setIsComputerLoading(true);
+    setStage("applying");
     setNeedsStudent(null);
     setFillProgress(null);
     setCopilotActive(false);
@@ -599,7 +703,15 @@ export default function CounselorPage() {
   // ─── Stage progress bar ─────────────────────────────────────────────────────
 
   const stageIndex = STAGES.findIndex((s) => s.id === stage);
-  const hasBrowserPanel = stage === "applying" || stage === "done" || !!sessionId;
+  // Browser panel is shown when there is an actual live session or it is being
+  // loaded — NOT from stage/text detection alone. This prevents the "Start
+  // Application" button from disappearing whenever the AI mentions "assisted
+  // application" before the user has actually clicked the button.
+  const hasBrowserPanel = !!liveViewUrl || !!sessionId || isComputerLoading;
+  // Applications that can be started (show the start button)
+  const startableApps = pendingApplications.filter((a) =>
+    ["not_started", "docs_pending", "sop_pending", "ready"].includes(a.status)
+  );
 
   // ─── RENDER ─────────────────────────────────────────────────────────────────
 
@@ -763,6 +875,14 @@ export default function CounselorPage() {
                 </div>
               ))}
 
+              {/* Initializing overlay */}
+              {isInitializing && (
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <span className="material-symbols-outlined text-[14px] text-white/30 animate-spin">progress_activity</span>
+                  <span className="text-[12px] text-white/30">Loading your session…</span>
+                </div>
+              )}
+
               {/* Loading indicator */}
               {isLoading && messages[messages.length - 1]?.role === "assistant" && messages[messages.length - 1]?.content === "" && (
                 <div className="flex justify-start">
@@ -776,17 +896,38 @@ export default function CounselorPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* ── Start apply CTA ── */}
-            {activeApplicationId && !hasBrowserPanel && (
-              <div className="shrink-0 px-4 pb-3 pt-0">
-                <button
-                  onClick={() => startAssistedApplication(activeApplicationId)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500
-                    text-white text-[13px] font-semibold transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">smart_toy</span>
-                  Start Application Guide
-                </button>
+            {/* ── Start apply CTA — shows all startable applications ── */}
+            {startableApps.length > 0 && !hasBrowserPanel && (
+              <div className="shrink-0 px-4 pb-3 pt-0 space-y-1.5">
+                {startableApps.length === 1 ? (
+                  <button
+                    onClick={() => startAssistedApplication(startableApps[0].id)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500
+                      text-white text-[13px] font-semibold transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                    Start Application — {startableApps[0].university}
+                  </button>
+                ) : (
+                  <>
+                    <p className="text-[10px] text-white/30 px-1">Your shortlisted applications:</p>
+                    {startableApps.map((app) => (
+                      <button
+                        key={app.id}
+                        onClick={() => { setActiveApplicationId(app.id); startAssistedApplication(app.id); }}
+                        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-indigo-500/30
+                          bg-indigo-600/10 hover:bg-indigo-600/20 text-white text-[12px] font-medium transition-colors text-left"
+                      >
+                        <span className="material-symbols-outlined text-[14px] text-indigo-400 shrink-0">smart_toy</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate">{app.university}</p>
+                          <p className="text-white/40 text-[10px] truncate">{app.program}</p>
+                        </div>
+                        <span className="material-symbols-outlined text-[14px] text-white/30 shrink-0">chevron_right</span>
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
             )}
 
@@ -825,13 +966,19 @@ export default function CounselorPage() {
             <div className="flex flex-col flex-1 overflow-hidden bg-[#0d1117]">
 
               {/* Browser toolbar */}
-              <div className="h-10 flex items-center justify-between px-3 border-b border-white/[0.06] shrink-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-white/40 truncate max-w-[300px]">
-                    {browserStatus || (liveViewUrl ? "Browser ready" : "Waiting…")}
-                  </span>
+              <div className="h-10 flex items-center justify-between px-3 border-b border-white/[0.06] shrink-0 gap-2">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
                   {isComputerLoading && (
                     <span className="material-symbols-outlined text-[12px] text-amber-400 animate-spin shrink-0">progress_activity</span>
+                  )}
+                  {currentPortalUrl ? (
+                    <span className="text-[11px] text-white/35 truncate font-mono">
+                      {(() => { try { return new URL(currentPortalUrl).hostname; } catch { return currentPortalUrl; } })()}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-white/25 truncate">
+                      {browserStatus || (liveViewUrl ? "Session active" : "Application portal")}
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -843,10 +990,21 @@ export default function CounselorPage() {
                   )}
                   {currentPortalUrl && (
                     <a href={currentPortalUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/[0.05] hover:bg-white/[0.09] text-white/45 hover:text-white/80 text-[10px] transition-colors">
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600/30
+                        border border-indigo-500/30 text-indigo-300 hover:text-indigo-200 text-[10px] font-medium transition-colors">
                       <span className="material-symbols-outlined text-[12px]">open_in_new</span>
-                      Open tab
+                      Open in my browser
                     </a>
+                  )}
+                  {sessionId && (
+                    <button
+                      onClick={closeSession}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08]
+                        text-white/30 hover:text-white/60 text-[10px] transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[12px]">close</span>
+                      End session
+                    </button>
                   )}
                 </div>
               </div>
@@ -854,31 +1012,41 @@ export default function CounselorPage() {
               {/* Browser view — Browserbase live iframe */}
               <div className="flex-1 overflow-hidden relative">
                 {liveViewUrl ? (
+                  // Live session: show Browserbase interactive iframe
+                  // The iframe provides a live, interactive browser viewport
                   <iframe
+                    key={liveViewUrl}
                     src={liveViewUrl}
                     className="w-full h-full border-0"
-                    allow="clipboard-read; clipboard-write; microphone; camera"
+                    title="Application Portal"
+                    allow="clipboard-read; clipboard-write; microphone; camera; geolocation"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    style={{ minHeight: 0 }}
                   />
-                ) : (
+                ) : isComputerLoading ? (
                   <div className="flex flex-col items-center justify-center h-full gap-3">
+                    <span className="material-symbols-outlined text-[32px] text-indigo-400 animate-spin">progress_activity</span>
+                    <p className="text-[12px] text-white/50">{browserStatus || "Opening application portal…"}</p>
+                    <p className="text-[10px] text-white/25 text-center max-w-[220px]">
+                      This takes a few seconds — we're launching a secure browser session.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
                     <span className="material-symbols-outlined text-[40px] text-white/15">language</span>
-                    {activeApplicationId ? (
+                    {startableApps.length > 0 ? (
                       <>
-                        <p className="text-[12px] text-white/30">Ready to start the browser session</p>
-                        <button
-                          onClick={() => startAssistedApplication(activeApplicationId)}
-                          className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500
-                            text-white text-[13px] font-semibold transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">play_arrow</span>
-                          Start Application Guide
-                        </button>
+                        <div className="text-center">
+                          <p className="text-[13px] text-white/50 font-medium">Application Guide</p>
+                          <p className="text-[11px] text-white/25 mt-1">
+                            Select an application from the left panel to start the guided portal walkthrough.
+                          </p>
+                        </div>
                       </>
                     ) : (
                       <>
-                        <p className="text-[12px] text-white/25">Browser view will appear here</p>
-                        <p className="text-[11px] text-white/15 text-center max-w-[200px]">
-                          Confirm a university shortlist in the chat first
+                        <p className="text-[12px] text-white/25 text-center max-w-[200px]">
+                          Your application portal will appear here once you shortlist a university.
                         </p>
                       </>
                     )}

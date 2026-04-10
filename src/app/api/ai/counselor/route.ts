@@ -179,6 +179,82 @@ RULES
 8. When all info is collected, move forward. Don't circle back to ask things again.`;
 }
 
+// ─── Init State (GET) — returns latest thread + pending applications ─────────
+
+export async function GET(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const requestedThreadId = searchParams.get("threadId");
+
+    // Get the most recent thread for this user
+    let threadId: string | null = null;
+    let threadSummary: string | null = null;
+    try {
+      if (requestedThreadId) {
+        const thread = await prisma.conversationThread.findFirst({
+          where: { id: requestedThreadId, userId: user.id },
+          select: { id: true, summary: true, messageCount: true },
+        });
+        if (thread && thread.messageCount > 0) {
+          threadId = thread.id;
+          threadSummary = thread.summary;
+        }
+      }
+      if (!threadId) {
+        const latestThread = await prisma.conversationThread.findFirst({
+          where: { userId: user.id, messageCount: { gt: 0 } },
+          orderBy: { updatedAt: "desc" },
+          select: { id: true, summary: true, messageCount: true },
+        });
+        if (latestThread) {
+          threadId = latestThread.id;
+          threadSummary = latestThread.summary;
+        }
+      }
+    } catch { /* ignore */ }
+
+    // Load recent messages for this thread
+    let messages: Array<{ role: string; content: string; id?: string }> = [];
+    if (threadId) {
+      try {
+        const dbMessages = await prisma.chatMessage.findMany({
+          where: { threadId },
+          orderBy: { createdAt: "desc" },
+          take: 30,
+          select: { id: true, role: true, content: true },
+        });
+        messages = dbMessages.reverse();
+      } catch { /* ignore */ }
+    }
+
+    // Get user's pending applications
+    let applications: Array<{ id: string; university: string; program: string; status: string }> = [];
+    try {
+      const apps = await prisma.application.findMany({
+        where: { userId: user.id },
+        include: { program: { include: { university: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      });
+      applications = apps.map((a) => ({
+        id: a.id,
+        university: a.program.university.name,
+        program: a.program.name,
+        status: a.status,
+      }));
+    } catch { /* ignore */ }
+
+    return Response.json({ threadId, threadSummary, messages, applications });
+  } catch (error) {
+    console.error("Counselor init error:", error);
+    return Response.json({ error: "Failed to load state" }, { status: 500 });
+  }
+}
+
 // ─── Main Route ──────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
@@ -233,13 +309,62 @@ export async function POST(request: Request) {
       }
       try {
         const result = await executeTool(confirmAction.toolName, toolInput, user.id);
-        return Response.json({ type: "confirmation_result", success: true, result: JSON.parse(result), toolName: confirmAction.toolName });
+        const parsed = JSON.parse(result);
+
+        // Save the confirmation to the thread so AI has full context on next message
+        if (requestThreadId) {
+          try {
+            const thread = await prisma.conversationThread.findFirst({
+              where: { id: requestThreadId, userId: user.id },
+            });
+            if (thread) {
+              const label = TOOL_LABELS[confirmAction.toolName] ?? confirmAction.toolName;
+              const summary = parsed.message ?? `${label} completed.`;
+              const appId = parsed.applicationId ? ` [applicationId: ${parsed.applicationId}]` : "";
+              await prisma.chatMessage.create({
+                data: {
+                  threadId: requestThreadId,
+                  role: "assistant",
+                  content: `[Action confirmed: ${label}] ${summary}${appId}`,
+                },
+              });
+              await prisma.conversationThread.update({
+                where: { id: requestThreadId },
+                data: { messageCount: { increment: 1 }, updatedAt: new Date() },
+              });
+            }
+          } catch { /* non-fatal */ }
+        }
+
+        return Response.json({ type: "confirmation_result", success: true, result: parsed, toolName: confirmAction.toolName });
       } catch (err) {
         return Response.json({ type: "confirmation_result", success: false, error: err instanceof Error ? err.message : "Action failed", toolName: confirmAction.toolName });
       }
     }
 
     if (rejectAction) {
+      // Record rejection in thread so AI knows what was declined
+      if (requestThreadId) {
+        try {
+          const thread = await prisma.conversationThread.findFirst({
+            where: { id: requestThreadId, userId: user.id },
+          });
+          if (thread) {
+            const label = TOOL_LABELS[rejectAction.toolName] ?? rejectAction.toolName;
+            await prisma.chatMessage.create({
+              data: {
+                threadId: requestThreadId,
+                role: "assistant",
+                content: `[Action rejected by user: ${label}]`,
+              },
+            });
+            await prisma.conversationThread.update({
+              where: { id: requestThreadId },
+              data: { messageCount: { increment: 1 }, updatedAt: new Date() },
+            });
+          }
+        } catch { /* non-fatal */ }
+      }
       return Response.json({ type: "confirmation_result", success: true, rejected: true, toolName: rejectAction.toolName });
     }
 
