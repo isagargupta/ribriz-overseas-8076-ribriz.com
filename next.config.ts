@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -15,6 +16,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "university.wyriz.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
       },
     ],
   },
@@ -48,4 +53,26 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "ribriz-overseas-ventures-pvt-l",
+  project: "javascript-nextjs",
+
+  // Auth token for uploading source maps (set SENTRY_AUTH_TOKEN in Vercel env).
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Silences the Sentry build output — remove to see upload logs.
+  silent: !process.env.CI,
+
+  // Upload source maps to Sentry so stack traces show original code.
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+
+  // Automatically tree-shake Sentry logger statements in production.
+  disableLogger: true,
+
+  // Capture React component names in error stack traces.
+  reactComponentAnnotation: {
+    enabled: true,
+  },
+});

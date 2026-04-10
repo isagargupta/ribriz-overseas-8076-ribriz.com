@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -274,8 +275,7 @@ export function LandingPage() {
                 transition={{ delay: 0.9, duration: 0.5 }}
                 className="absolute -left-6 top-28 hidden md:flex bg-white rounded-2xl shadow-xl border border-black/[0.07] px-3.5 py-3 items-center gap-3 max-w-[190px]"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&cs=tinysrgb&w=48&h=48&fit=crop" alt="student" className="w-9 h-9 rounded-full object-cover shrink-0 border-2 border-white" />
+                <Image src="https://images.pexels.com/photos/3769021/pexels-photo-3769021.jpeg?auto=compress&cs=tinysrgb&w=48&h=48&fit=crop" alt="student" width={36} height={36} className="w-9 h-9 rounded-full object-cover shrink-0 border-2 border-white" />
                 <div className="text-left min-w-0">
                   <div className="text-xs font-bold text-[#191c1e] truncate">Priya got admitted 🎉</div>
                   <div className="text-[10px] text-[#777587]">University of Toronto</div>
@@ -552,8 +552,7 @@ export function LandingPage() {
 
               {/* Canada — tall (spans 2 rows) */}
               <motion.div variants={fadeUp} custom={0} className="relative rounded-2xl overflow-hidden group cursor-pointer row-span-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/1519088/pexels-photo-1519088.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&fit=crop" alt="Canada" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/1519088/pexels-photo-1519088.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&fit=crop" alt="Canada" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <div className="text-white font-extrabold text-2xl font-headline leading-tight">Canada</div>
@@ -563,8 +562,7 @@ export function LandingPage() {
 
               {/* Germany */}
               <motion.div variants={fadeUp} custom={1} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/109629/pexels-photo-109629.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Germany" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/109629/pexels-photo-109629.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Germany" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">Germany</div>
@@ -574,8 +572,7 @@ export function LandingPage() {
 
               {/* Australia */}
               <motion.div variants={fadeUp} custom={2} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/995764/pexels-photo-995764.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Australia" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/995764/pexels-photo-995764.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Australia" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">Australia</div>
@@ -585,8 +582,7 @@ export function LandingPage() {
 
               {/* Singapore — wide (spans 2 cols) */}
               <motion.div variants={fadeUp} custom={3} className="relative rounded-2xl overflow-hidden group cursor-pointer col-span-2 md:col-span-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/2994829/pexels-photo-2994829.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Singapore" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/2994829/pexels-photo-2994829.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Singapore" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">Singapore</div>
@@ -596,8 +592,7 @@ export function LandingPage() {
 
               {/* UK — wide (spans 2 cols) */}
               <motion.div variants={fadeUp} custom={4} className="relative rounded-2xl overflow-hidden group cursor-pointer col-span-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/460672/pexels-photo-460672.jpeg?auto=compress&cs=tinysrgb&w=900&h=400&fit=crop" alt="United Kingdom" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/460672/pexels-photo-460672.jpeg?auto=compress&cs=tinysrgb&w=900&h=400&fit=crop" alt="United Kingdom" fill sizes="(max-width: 768px) 50vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <div className="text-white font-extrabold text-xl font-headline">United Kingdom</div>
@@ -607,8 +602,7 @@ export function LandingPage() {
 
               {/* Netherlands */}
               <motion.div variants={fadeUp} custom={5} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/1414467/pexels-photo-1414467.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Netherlands" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/1414467/pexels-photo-1414467.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Netherlands" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">Netherlands</div>
@@ -618,8 +612,7 @@ export function LandingPage() {
 
               {/* USA */}
               <motion.div variants={fadeUp} custom={6} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="USA" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="USA" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">USA</div>
@@ -629,8 +622,7 @@ export function LandingPage() {
 
               {/* Ireland */}
               <motion.div variants={fadeUp} custom={7} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/2416600/pexels-photo-2416600.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Ireland" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/2416600/pexels-photo-2416600.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Ireland" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">Ireland</div>
@@ -640,8 +632,7 @@ export function LandingPage() {
 
               {/* Sweden */}
               <motion.div variants={fadeUp} custom={8} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/3787839/pexels-photo-3787839.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Sweden" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/3787839/pexels-photo-3787839.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Sweden" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">Sweden</div>
@@ -651,8 +642,7 @@ export function LandingPage() {
 
               {/* New Zealand */}
               <motion.div variants={fadeUp} custom={9} className="relative rounded-2xl overflow-hidden group cursor-pointer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://images.pexels.com/photos/1538177/pexels-photo-1538177.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="New Zealand" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src="https://images.pexels.com/photos/1538177/pexels-photo-1538177.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="New Zealand" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="text-white font-extrabold text-lg font-headline">New Zealand</div>

@@ -145,10 +145,18 @@ async function apiFetch<T>(path: string): Promise<T> {
   }
 
   const fullUrl = `${baseUrl}${path}`;
-  const res = await fetch(fullUrl, {
-    headers: { "X-API-Key": key },
-    next: { revalidate: 300 },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  let res: Response;
+  try {
+    res = await fetch(fullUrl, {
+      headers: { "X-API-Key": key },
+      next: { revalidate: 300 },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     console.error(`[ExternalAPI] ${res.status} on ${path}:`, body.slice(0, 200));

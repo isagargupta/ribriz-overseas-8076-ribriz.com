@@ -163,45 +163,53 @@ export async function GET(request: Request) {
     }
 
     // ─── Proactive: Incomplete profile alerts ───
-    const usersWithIncompleteProfiles = await prisma.user.findMany({
-      where: {
-        onboardingComplete: true,
-        applications: { some: {} },
-      },
-      include: { academicProfile: true, preferences: true },
-    });
+    // Paginate in batches of 100 to avoid locking the DB on large user tables.
+    const BATCH_SIZE = 100;
+    let skip = 0;
+    let batch: { id: string; academicProfile: { ieltsScore: number | null; toeflScore: number | null; pteScore: number | null } | null; preferences: { careerGoals: string | null; targetCountries: string[] } | null }[];
+    do {
+      batch = await prisma.user.findMany({
+        where: {
+          onboardingComplete: true,
+          applications: { some: {} },
+        },
+        include: { academicProfile: true, preferences: true },
+        skip,
+        take: BATCH_SIZE,
+      });
+      skip += BATCH_SIZE;
+      for (const u of batch) {
+        const missing: string[] = [];
+        if (!u.academicProfile?.ieltsScore && !u.academicProfile?.toeflScore && !u.academicProfile?.pteScore)
+          missing.push("English test score");
+        if (!u.preferences?.careerGoals)
+          missing.push("Career goals");
 
-    for (const u of usersWithIncompleteProfiles) {
-      const missing: string[] = [];
-      if (!u.academicProfile?.ieltsScore && !u.academicProfile?.toeflScore && !u.academicProfile?.pteScore)
-        missing.push("English test score");
-      if (!u.preferences?.careerGoals)
-        missing.push("Career goals");
-
-      if (missing.length > 0) {
-        const existing = await prisma.proactiveAlert.findFirst({
-          where: {
-            userId: u.id,
-            type: "profile_incomplete",
-            isDismissed: false,
-            createdAt: { gt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
-          },
-        });
-
-        if (!existing) {
-          await prisma.proactiveAlert.create({
-            data: {
+        if (missing.length > 0) {
+          const existing = await prisma.proactiveAlert.findFirst({
+            where: {
               userId: u.id,
               type: "profile_incomplete",
-              title: "Complete your profile for better matches",
-              body: `Missing: ${missing.join(", ")}. A complete profile improves university matching accuracy.`,
-              priority: "medium",
-              actionUrl: "/settings",
+              isDismissed: false,
+              createdAt: { gt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
             },
           });
+
+          if (!existing) {
+            await prisma.proactiveAlert.create({
+              data: {
+                userId: u.id,
+                type: "profile_incomplete",
+                title: "Complete your profile for better matches",
+                body: `Missing: ${missing.join(", ")}. A complete profile improves university matching accuracy.`,
+                priority: "medium",
+                actionUrl: "/settings",
+              },
+            });
+          }
         }
       }
-    }
+    } while (batch.length === BATCH_SIZE);
 
     // ─── Run daily watchdog (stale apps, portfolio balance, etc.) ───
     let watchdogResult = null;

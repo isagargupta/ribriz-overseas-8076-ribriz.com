@@ -81,7 +81,7 @@ export default function SOPWriterPage() {
   useEffect(() => {
     Promise.all([
       fetch("/api/user/profile").then((r) => r.json()),
-      fetch("/api/universities").then((r) => r.json()),
+      fetch("/api/universities", { next: { revalidate: 300 } } as RequestInit).then((r) => r.json()),
     ])
       .then(([profileData, uniData]) => {
         const u = profileData.user;

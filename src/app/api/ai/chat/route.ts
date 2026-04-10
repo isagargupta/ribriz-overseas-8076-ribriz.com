@@ -1,6 +1,7 @@
 import { anthropic, CHAT_MODEL } from "@/lib/ai/claude";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@/generated/prisma/client";
 import {
   RIZ_TOOLS,
   executeTool,
@@ -24,6 +25,18 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 200;
 const WINDOW_MS = 60 * 60 * 1000;
 
+// Cache the heavy DB query in buildSystemPrompt for 2 minutes per user.
+// This avoids hitting Postgres on every single chat message.
+type CachedDbUser = Prisma.UserGetPayload<{
+  include: {
+    academicProfile: true;
+    preferences: true;
+    applications: { include: { program: { include: { university: true } } }; take: 10 };
+  };
+}>;
+const userProfileCache = new Map<string, { data: CachedDbUser | null; expiresAt: number }>();
+const PROFILE_CACHE_TTL_MS = 2 * 60 * 1000;
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -32,17 +45,25 @@ interface ChatMessage {
 // ─── Helper: Build the system prompt ────────────────────
 
 async function buildSystemPrompt(userId: string, topic?: string, threadSummary?: string | null, threadState?: Record<string, unknown> | null) {
-  const dbUser = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      academicProfile: true,
-      preferences: true,
-      applications: {
-        include: { program: { include: { university: true } } },
-        take: 10,
+  const now = Date.now();
+  const cached = userProfileCache.get(userId);
+  let dbUser: CachedDbUser | null;
+  if (cached && cached.expiresAt > now) {
+    dbUser = cached.data;
+  } else {
+    dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        academicProfile: true,
+        preferences: true,
+        applications: {
+          include: { program: { include: { university: true } } },
+          take: 10,
+        },
       },
-    },
-  });
+    });
+    userProfileCache.set(userId, { data: dbUser, expiresAt: now + PROFILE_CACHE_TTL_MS });
+  }
 
   const profile = dbUser?.academicProfile;
   const prefs = dbUser?.preferences;
@@ -50,7 +71,7 @@ async function buildSystemPrompt(userId: string, topic?: string, threadSummary?:
   const profileContext = profile
     ? `
 STUDENT PROFILE:
-- Name: ${dbUser.name}
+- Name: ${dbUser?.name}
 - Degree: ${profile.degreeName} from ${profile.collegeName}
 - GPA: ${profile.gpa}/${profile.gpaScale === "scale_4" ? "4.0" : profile.gpaScale === "scale_10" ? "10" : "100"}
 - Graduation Year: ${profile.graduationYear}
