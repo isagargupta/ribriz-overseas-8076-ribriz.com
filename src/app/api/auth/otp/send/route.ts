@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import { otpEmail } from "@/lib/email/templates";
+import { otpRatelimit } from "@/lib/ratelimit";
 import crypto from "node:crypto";
 
 export const runtime = "nodejs";
 
 const OTP_COOKIE = "ribriz_otp_state";
-
-// Simple per-email rate limit: max 5 OTP requests per 10 minutes.
-// Replace with Redis-backed rate limiting once Redis is available.
-const otpRateLimit = new Map<string, { count: number; resetAt: number }>();
-const OTP_MAX = 5;
-const OTP_WINDOW_MS = 10 * 60 * 1000;
 
 function signState(payload: object, secret: string): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -32,19 +27,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Rate limit by email address
-    const now = Date.now();
-    const rl = otpRateLimit.get(email);
-    if (rl && rl.resetAt > now) {
-      if (rl.count >= OTP_MAX) {
+    // Rate limit by email address (Redis-backed; skipped if Redis is not configured)
+    if (otpRatelimit) {
+      const { success } = await otpRatelimit.limit(email);
+      if (!success) {
         return NextResponse.json(
           { error: "Too many verification requests. Please wait a few minutes and try again." },
           { status: 429 }
         );
       }
-      rl.count++;
-    } else {
-      otpRateLimit.set(email, { count: 1, resetAt: now + OTP_WINDOW_MS });
     }
 
     const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

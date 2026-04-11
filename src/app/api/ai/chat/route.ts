@@ -1,6 +1,7 @@
 import { anthropic, CHAT_MODEL } from "@/lib/ai/claude";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
+import { chatRatelimit } from "@/lib/ratelimit";
 import { deductCredits } from "@/lib/subscription/credits";
 import type { Prisma } from "@/generated/prisma/client";
 import {
@@ -22,9 +23,6 @@ import {
 } from "@/lib/ai/memory";
 import type Anthropic from "@anthropic-ai/sdk";
 
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 200;
-const WINDOW_MS = 60 * 60 * 1000;
 
 // Cache the heavy DB query in buildSystemPrompt for 2 minutes per user.
 // This avoids hitting Postgres on every single chat message.
@@ -240,16 +238,12 @@ export async function POST(request: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Rate limiting
-    const now = Date.now();
-    const entry = rateLimitMap.get(user.id);
-    if (entry && entry.resetAt > now) {
-      if (entry.count >= RATE_LIMIT) {
+    // Rate limiting (Redis-backed; skipped if Redis is not configured)
+    if (chatRatelimit) {
+      const { success } = await chatRatelimit.limit(user.id);
+      if (!success) {
         return Response.json({ error: "Rate limit exceeded. Try again later." }, { status: 429 });
       }
-      entry.count++;
-    } else {
-      rateLimitMap.set(user.id, { count: 1, resetAt: now + WINDOW_MS });
     }
 
     // Deduct 1 credit per user message

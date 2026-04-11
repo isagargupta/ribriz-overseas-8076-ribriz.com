@@ -41,6 +41,32 @@ const nextConfig: NextConfig = {
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "X-Frame-Options", value: "DENY" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        // Force HTTPS for 1 year; include subdomains
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains",
+        },
+        // CSP: tightened per actual asset origins used in this app
+        {
+          key: "Content-Security-Policy",
+          value: [
+            "default-src 'self'",
+            // Scripts: self + Next.js inline scripts + Razorpay checkout
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
+            // Styles: self + inline (Tailwind) + Google Fonts (Material Symbols stylesheet)
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            // Images: self + logo sources; gstatic.com needed because Google favicon service redirects there
+            "img-src 'self' data: blob: https://www.google.com https://*.gstatic.com https://logo.clearbit.com https://university.wyriz.dev https://images.pexels.com",
+            // Fonts: self + gstatic.com (Material Symbols + Google Fonts actual font files)
+            "font-src 'self' https://fonts.gstatic.com",
+            // API calls: self + Supabase + Sentry + Anthropic + Razorpay + university API + Perplexity
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://de.sentry.io https://api.anthropic.com https://api.razorpay.com https://university.wyriz.dev https://api.perplexity.ai",
+            // Frames: Razorpay checkout opens in an iframe
+            "frame-src https://api.razorpay.com https://checkout.razorpay.com",
+            // Workers: self + blob (used by Sentry)
+            "worker-src 'self' blob:",
+          ].join("; "),
+        },
       ],
     },
     {
@@ -68,11 +94,14 @@ export default withSentryConfig(nextConfig, {
     deleteSourcemapsAfterUpload: true,
   },
 
-  // Automatically tree-shake Sentry logger statements in production.
-  disableLogger: true,
-
-  // Capture React component names in error stack traces.
-  reactComponentAnnotation: {
-    enabled: true,
+  webpack: {
+    // Tree-shake Sentry debug logging in production builds.
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    // Capture React component names in error stack traces.
+    reactComponentAnnotation: {
+      enabled: true,
+    },
   },
 });

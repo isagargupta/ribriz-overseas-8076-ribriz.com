@@ -127,16 +127,16 @@ export function LandingPage() {
                 </div>
 
                 {/* Dashboard — sidebar + main */}
-                <div className="flex" style={{ height: "400px" }}>
+                <div className="flex h-[320px] sm:h-[400px]">
 
-                  {/* Sidebar */}
-                  <div className="w-44 shrink-0 flex flex-col py-2 overflow-hidden" style={{ background: "#161b22" }}>
+                  {/* Sidebar — hidden on mobile */}
+                  <div className="hidden sm:flex w-44 shrink-0 flex-col py-2 overflow-hidden" style={{ background: "#161b22" }}>
                     {/* User */}
                     <div className="flex items-center gap-2 px-3 py-2 mb-1">
-                      <div className="w-6 h-6 rounded-full bg-[#3525cd] flex items-center justify-center text-white text-[10px] font-bold shrink-0">S</div>
+                      <div className="w-6 h-6 rounded-full bg-[#3525cd] flex items-center justify-center text-white text-[10px] font-bold shrink-0">R</div>
                       <div className="min-w-0">
-                        <div className="text-white text-[11px] font-semibold leading-none">sagar</div>
-                        <div className="text-white/40 text-[9px] truncate">sgupta@ribriz.com</div>
+                        <div className="text-white text-[11px] font-semibold leading-none">Rohan</div>
+                        <div className="text-white/40 text-[9px] truncate">rohan@ribriz.com</div>
                       </div>
                     </div>
                     <div className="h-px bg-white/[0.06] mx-3 mb-2" />
@@ -183,18 +183,18 @@ export function LandingPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 overflow-hidden px-5 py-4">
+                    <div className="flex-1 overflow-hidden px-3 sm:px-5 py-3 sm:py-4">
                       {/* Welcome row */}
                       <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h2 className="text-base font-extrabold text-[#191c1e] leading-tight">Welcome back, Sagar •</h2>
+                        <div className="min-w-0">
+                          <h2 className="text-sm sm:text-base font-extrabold text-[#191c1e] leading-tight">Welcome back, Rohan •</h2>
                           <p className="text-[10px] text-[#777587] mt-0.5">
                             Targeting <span className="font-bold text-[#3525cd]">Bachelor&apos;s</span> in Data Science / AI across Canada, Germany, Australia
                             {" "}<span className="font-semibold">+6 more</span> for{" "}
                             <span className="bg-[#3525cd]/10 text-[#3525cd] px-1.5 py-0.5 rounded text-[9px] font-bold">Fall 2027</span>
                           </p>
                         </div>
-                        <div className="flex gap-2 shrink-0">
+                        <div className="hidden sm:flex gap-2 shrink-0">
                           <div className="flex items-center gap-1 border border-black/[0.1] rounded-md px-2 py-1">
                             <span className="material-symbols-outlined text-[11px] text-[#464555]">download</span>
                             <span className="text-[9px] font-semibold text-[#464555]">Export Roadmap</span>
@@ -207,14 +207,14 @@ export function LandingPage() {
                       </div>
 
                       {/* Stats row */}
-                      <div className="grid grid-cols-4 gap-2.5 mb-3">
+                      <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 mb-3">
                         {[
                           { icon: "school", val: "12", label: "APPLICATIONS", sub: "1 submitted", sub_color: "text-[#3525cd]" },
                           { icon: "description", val: "3/25", label: "DOCUMENTS READY", sub: "3 verified", sub_color: "text-[#3525cd]" },
                           { icon: "emoji_events", val: "1", label: "ACCEPTANCES", sub: "", sub_color: "" },
                           { icon: "schedule", val: "281", label: "DAYS TO DEADLINE", sub: "", sub_color: "" },
                         ].map((s) => (
-                          <div key={s.label} className="bg-[#f7f9fb] rounded-lg p-2.5 border border-black/[0.05] text-left">
+                          <div key={s.label} className="bg-[#f7f9fb] rounded-lg p-2 sm:p-2.5 border border-black/[0.05] text-left">
                             <div className="w-5 h-5 rounded bg-[#3525cd]/10 flex items-center justify-center mb-1.5">
                               <span className="material-symbols-outlined text-[#3525cd] text-[12px]">{s.icon}</span>
                             </div>
