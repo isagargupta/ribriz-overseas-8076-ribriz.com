@@ -23,12 +23,14 @@ export default async function DashboardLayout({
     .slice(0, 2);
 
   let onboardingComplete = false;
+  let initialCredits = 0;
   if (user) {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { onboardingComplete: true },
+      select: { onboardingComplete: true, credits: true },
     });
     onboardingComplete = dbUser?.onboardingComplete ?? false;
+    initialCredits = dbUser?.credits ?? 0;
   }
 
   return (
@@ -38,7 +40,7 @@ export default async function DashboardLayout({
         userInitials={initials}
         userEmail={user?.email || ""}
       />
-      <DashboardMain>
+      <DashboardMain initialCredits={initialCredits}>
         <TopNav userName={displayName} userInitials={initials} />
         {!onboardingComplete && <OnboardingBanner />}
         <MobileNav

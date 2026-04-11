@@ -7,6 +7,8 @@ import { computeMatchScore, getBadge } from "@/lib/scoring";
 import { getUniversityLogoUrl } from "@/lib/university-logo";
 import { fetchExternalPrograms } from "@/lib/external-university-api";
 import { ExportRoadmapButton } from "@/components/ui/export-roadmap-btn";
+import { DashboardUpsellSection } from "@/components/dashboard/upsell-section";
+import { DashboardUpgradeCTA } from "@/components/dashboard/upgrade-cta";
 import {
   AnimatedNumber,
   LivePulse,
@@ -530,6 +532,9 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* ── Upgrade CTA (free users only) ───────────────── */}
+      <DashboardUpgradeCTA tier={dbUser.subscriptionTier} />
 
       {/* ── Main Grid ───────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1130,6 +1135,9 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* ── Credits & Plans upsell ──────────────────────── */}
+      <DashboardUpsellSection />
 
       {/* ── Footer ──────────────────────────────────────── */}
       <footer className="mt-8 sm:mt-12 py-6 border-t border-surface-container flex flex-col md:flex-row justify-between items-center gap-4">

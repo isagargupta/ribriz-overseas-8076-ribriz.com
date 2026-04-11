@@ -17,17 +17,17 @@ const onboardingSchema = z.object({
   // Step 2: Academics
   tenthPct: z.string().optional(),
   twelfthPct: z.string().optional(),
-  degree: z.string().min(1, "Degree is required").max(200),
+  degree: z.string().max(200).optional(),
   specialization: z.string().max(200).optional(),
-  college: z.string().min(1, "College is required").max(200),
+  college: z.string().max(200).optional(),
   universityRanking: z.string().optional(),
-  gpa: z.string().min(1, "GPA is required").refine(
-    (v) => { const n = parseFloat(v); return !isNaN(n) && n >= 0 && n <= 100; },
+  gpa: z.string().optional().refine(
+    (v) => !v || (() => { const n = parseFloat(v); return !isNaN(n) && n >= 0 && n <= 100; })(),
     "GPA must be a number between 0 and 100"
   ),
-  gpaScale: z.enum(["scale_10", "scale_4", "scale_100"]),
-  gradYear: z.string().refine(
-    (v) => { const n = parseInt(v, 10); return !isNaN(n) && n >= 1980 && n <= 2035; },
+  gpaScale: z.enum(["scale_10", "scale_4", "scale_100"]).optional(),
+  gradYear: z.string().optional().refine(
+    (v) => !v || (() => { const n = parseInt(v, 10); return !isNaN(n) && n >= 1980 && n <= 2035; })(),
     "Graduation year must be between 1980 and 2035"
   ),
   backlogs: z.string().optional(),
@@ -221,14 +221,13 @@ export async function POST(request: Request) {
           userId: user.id,
           tenthPercentage: parseFloat_(body.tenthPct),
           twelfthPercentage: parseFloat_(body.twelfthPct),
-          degreeName: body.degree,
+          degreeName: body.degree || "",
           specialization: body.specialization || null,
-          collegeName: body.college,
+          collegeName: body.college || "",
           universityRanking: body.universityRanking || null,
-          gpa: parseFloat(body.gpa),
-          gpaScale: body.gpaScale,
-          graduationYear:
-            parseInt(body.gradYear, 10) || new Date().getFullYear(),
+          gpa: body.gpa ? parseFloat(body.gpa) : 0,
+          gpaScale: body.gpaScale || "scale_4",
+          graduationYear: body.gradYear ? parseInt(body.gradYear, 10) : 0,
           backlogs: parseBacklogs(body.backlogs),
           workExperienceMonths: parseInt_(body.workExpMonths) ?? 0,
           ieltsScore: parseFloat_(body.ielts),
@@ -256,14 +255,13 @@ export async function POST(request: Request) {
         update: {
           tenthPercentage: parseFloat_(body.tenthPct),
           twelfthPercentage: parseFloat_(body.twelfthPct),
-          degreeName: body.degree,
+          degreeName: body.degree || "",
           specialization: body.specialization || null,
-          collegeName: body.college,
+          collegeName: body.college || "",
           universityRanking: body.universityRanking || null,
-          gpa: parseFloat(body.gpa),
-          gpaScale: body.gpaScale,
-          graduationYear:
-            parseInt(body.gradYear, 10) || new Date().getFullYear(),
+          gpa: body.gpa ? parseFloat(body.gpa) : 0,
+          gpaScale: body.gpaScale || "scale_4",
+          graduationYear: body.gradYear ? parseInt(body.gradYear, 10) : 0,
           backlogs: parseBacklogs(body.backlogs),
           workExperienceMonths: parseInt_(body.workExpMonths) ?? 0,
           ieltsScore: parseFloat_(body.ielts),

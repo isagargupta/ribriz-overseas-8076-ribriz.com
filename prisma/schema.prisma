@@ -11,9 +11,18 @@ datasource db {
 
 enum SubscriptionTier {
   free
-  explorer
-  pro
+  explorer      // legacy
+  pro           // legacy
+  basic
   premium
+  elite
+}
+
+enum PaymentStatus {
+  created
+  paid
+  failed
+  refunded
 }
 
 enum GpaScale {
@@ -111,6 +120,8 @@ model User {
   createdAt          DateTime         @default(now())
   onboardingComplete      Boolean          @default(false)
   subscriptionTier        SubscriptionTier @default(free)
+  subscriptionExpiresAt   DateTime?
+  credits                 Int              @default(0)
   notificationPreferences Json?
 
   // Assisted application consent
@@ -140,6 +151,9 @@ model User {
   candidateRoadmaps  CandidateRoadmap[]
   interviewSessions  InterviewSession[]
   warRoomSimulations WarRoomSimulation[]
+
+  paymentOrders        PaymentOrder[]
+  creditTransactions   CreditTransaction[]
 }
 
 model AcademicProfile {
@@ -868,4 +882,42 @@ model UniversityChangeLog {
 
   @@index([universityId, detectedAt])
   @@index([detectedAt])
+}
+
+model PaymentOrder {
+  id                  String           @id @default(uuid()) @db.Uuid
+  userId              String           @db.Uuid
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  razorpayOrderId     String           @unique
+  razorpayPaymentId   String?
+  razorpaySignature   String?
+
+  orderType           String           @default("plan") // "plan" | "credits"
+  tier                SubscriptionTier @default(free)   // used when orderType = "plan"
+  creditsAmount       Int              @default(0)      // used when orderType = "credits"
+  amountPaise         Int
+  currency            String           @default("INR")
+  status              PaymentStatus    @default(created)
+  validityDays        Int              @default(0)      // used when orderType = "plan"
+  expiresAt           DateTime?
+
+  createdAt           DateTime         @default(now())
+  paidAt              DateTime?
+
+  @@index([userId])
+  @@index([razorpayOrderId])
+  @@index([userId, status])
+}
+
+model CreditTransaction {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int      // positive = credit added, negative = deducted
+  reason    String   // "recharge", "plan_included", "signup_bonus", "university_match", "riz_ai_message", "sop_draft", "scholarship_scan"
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { anthropic, SOP_MODEL } from "@/lib/ai/claude";
 import { createClient } from "@/lib/supabase/server";
+import { deductCredits } from "@/lib/subscription/credits";
 
 // Simple in-memory rate limiter (resets on server restart)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -49,6 +50,15 @@ export async function POST(request: Request) {
       entry.count++;
     } else {
       rateLimitMap.set(userId, { count: 1, resetAt: now + WINDOW_MS });
+    }
+
+    // Deduct credits for SOP generation
+    const creditResult = await deductCredits(userId, "sopDraft", "sop_draft");
+    if (!creditResult.ok) {
+      return NextResponse.json(
+        { error: creditResult.error, upgradeRequired: true },
+        { status: 402 }
+      );
     }
 
     const body: SOPRequest = await request.json();

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
+import { addCredits } from "@/lib/subscription/credits";
 
 // Called after signup/login to ensure a Prisma User record exists
 export async function POST() {
@@ -17,12 +18,10 @@ export async function POST() {
     const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Student";
 
     const created = await prisma.user.create({
-      data: {
-        id: user.id,
-        email: user.email!,
-        name,
-      },
+      data: { id: user.id, email: user.email!, name },
     });
+
+    await addCredits(user.id, 30, "signup_bonus");
 
     return NextResponse.json({ user: created, created: true }, { status: 201 });
   } catch (error) {

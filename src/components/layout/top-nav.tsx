@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/components/theme-provider";
+import { useCreditContext } from "@/contexts/credits";
 
 export function TopNav({
   userName: _userName,
@@ -12,6 +13,7 @@ export function TopNav({
   userRole?: string;
 }) {
   const { theme, toggleTheme } = useTheme();
+  const { credits, showCreditGate } = useCreditContext();
 
   return (
     <header className="w-full h-14 md:h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant/20 flex justify-between items-center px-4 md:px-8 transition-colors duration-300">
@@ -42,6 +44,22 @@ export function TopNav({
         <button className="relative p-1 text-on-surface-variant hover:text-primary transition-colors">
           <span className="material-symbols-outlined">notifications</span>
           <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-surface" />
+        </button>
+
+        {/* Credit pill */}
+        <button
+          onClick={() => credits === 0 ? showCreditGate() : undefined}
+          title={`${credits} credits remaining`}
+          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold tabular-nums border transition-colors select-none
+            ${credits === 0
+              ? "border-error/60 text-error bg-error/10 hover:bg-error/20 cursor-pointer"
+              : credits < 10
+              ? "border-amber-400/60 text-amber-600 dark:text-amber-400 bg-amber-400/10 cursor-default"
+              : "border-primary/30 text-primary bg-primary/8 cursor-default"
+            }`}
+        >
+          <span className="text-[11px]">⚡</span>
+          <span>{credits}</span>
         </button>
 
         {/* RIBRIZ Branding */}

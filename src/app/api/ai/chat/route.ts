@@ -1,6 +1,7 @@
 import { anthropic, CHAT_MODEL } from "@/lib/ai/claude";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
+import { deductCredits } from "@/lib/subscription/credits";
 import type { Prisma } from "@/generated/prisma/client";
 import {
   RIZ_TOOLS,
@@ -249,6 +250,12 @@ export async function POST(request: Request) {
       entry.count++;
     } else {
       rateLimitMap.set(user.id, { count: 1, resetAt: now + WINDOW_MS });
+    }
+
+    // Deduct 1 credit per user message
+    const creditResult = await deductCredits(user.id, "rizAiMessage", "riz_ai_message");
+    if (!creditResult.ok) {
+      return Response.json({ error: creditResult.error, upgradeRequired: true }, { status: 402 });
     }
 
     const body = await request.json();

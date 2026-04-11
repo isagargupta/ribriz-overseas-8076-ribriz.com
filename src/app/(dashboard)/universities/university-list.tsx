@@ -106,11 +106,15 @@ export default function UniversityList({
   summaryLine,
   totalCount,
   insights,
+  isLimited = false,
+  totalUnlocked = 0,
 }: {
   universities: UniversityItem[];
   summaryLine: string;
   totalCount: number;
   insights: ProfileInsights;
+  isLimited?: boolean;
+  totalUnlocked?: number;
 }) {
   /* ── Filter state ───────────────────────────────────── */
   const [selectedCountries, setSelectedCountries] = useState<Set<string>>(new Set());
@@ -717,6 +721,25 @@ export default function UniversityList({
             </div>
           )}
         </div>
+
+        {isLimited && (
+          <div className="mt-6 p-5 bg-primary/[0.05] border border-primary/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-on-surface">
+                {totalUnlocked - 5} more universities matched your profile
+              </p>
+              <p className="text-xs text-on-surface-variant font-medium mt-0.5">
+                Upgrade to DIY or above to unlock all {totalUnlocked} matches.
+              </p>
+            </div>
+            <a
+              href="/settings"
+              className="shrink-0 px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
+            >
+              Upgrade Plan
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

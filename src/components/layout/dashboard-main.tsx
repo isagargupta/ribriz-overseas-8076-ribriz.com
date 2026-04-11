@@ -1,8 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CreditProvider } from "@/contexts/credits";
+import { CreditGateModal } from "@/components/ui/credit-gate-modal";
 
-export function DashboardMain({ children }: { children: React.ReactNode }) {
+export function DashboardMain({
+  children,
+  initialCredits,
+}: {
+  children: React.ReactNode;
+  initialCredits?: number;
+}) {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -18,11 +26,14 @@ export function DashboardMain({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <main
-      className={`min-h-screen bg-surface transition-all duration-300
-        ${collapsed ? "md:ml-[68px]" : "md:ml-[256px]"}`}
-    >
-      {children}
-    </main>
+    <CreditProvider initialCredits={initialCredits ?? 0}>
+      <main
+        className={`min-h-screen bg-surface transition-all duration-300
+          ${collapsed ? "md:ml-[68px]" : "md:ml-[256px]"}`}
+      >
+        {children}
+      </main>
+      <CreditGateModal />
+    </CreditProvider>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
@@ -52,11 +53,8 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('ribriz-theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
-          }}
-        />
+        {/* Runs before hydration to apply saved theme and prevent flash */}
+        <Script id="theme-init" strategy="beforeInteractive" src="/theme-init.js" />
       </head>
       <body className="min-h-screen antialiased bg-surface text-on-surface transition-colors duration-300">
         <ThemeProvider>
@@ -64,7 +62,7 @@ export default function RootLayout({
             {children}
           </ToastProvider>
         </ThemeProvider>
-        <script src="https://checkout.razorpay.com/v1/checkout.js" async />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       </body>
     </html>
   );

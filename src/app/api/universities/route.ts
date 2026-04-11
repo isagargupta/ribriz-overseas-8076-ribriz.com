@@ -10,6 +10,7 @@ import {
 } from "@/lib/scoring";
 import { getUniversityLogoUrl } from "@/lib/university-logo";
 import { fetchExternalPrograms } from "@/lib/external-university-api";
+import { deductCredits } from "@/lib/subscription/credits";
 
 export async function GET() {
   try {
@@ -112,7 +113,16 @@ export async function GET() {
       })
       .sort((a, b) => b.matchScore - a.matchScore);
 
-    return NextResponse.json({ universities: scored });
+    // Deduct credits for this match call
+    const creditResult = await deductCredits(user.id, "universityMatch", "university_match");
+    if (!creditResult.ok) {
+      return NextResponse.json(
+        { error: creditResult.error, upgradeRequired: true },
+        { status: 402 }
+      );
+    }
+
+    return NextResponse.json({ universities: scored, creditsRemaining: creditResult.remaining });
   } catch (error) {
     console.error("Universities fetch error:", error);
     return NextResponse.json(

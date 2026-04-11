@@ -176,6 +176,7 @@ export default function OnboardingPage() {
   const [selectedPlannedTests, setSelectedPlannedTests] = useState<string[]>(
     []
   );
+  const [degreeType, setDegreeType] = useState<"bachelors" | "masters" | "">("");
 
   const [form, setForm] = useState({
     // Step 1: Identity
@@ -372,6 +373,11 @@ export default function OnboardingPage() {
           scholarshipPref: fin?.scholarshipPref || prev.scholarshipPref,
         }));
 
+        // Restore degree type from saved profile
+        if (pref?.targetDegreeLevel) {
+          setDegreeType(pref.targetDegreeLevel === "bachelors" ? "bachelors" : "masters");
+        }
+
         // Set secondary state
         if (ap?.backlogs != null) {
           const b = ap.backlogs;
@@ -412,6 +418,11 @@ export default function OnboardingPage() {
     );
   };
 
+  const selectDegreeType = (type: "bachelors" | "masters") => {
+    setDegreeType(type);
+    update("degreeLevel", type);
+  };
+
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
 
@@ -444,8 +455,81 @@ export default function OnboardingPage() {
 
   return (
     <div className="onb-light-root">
+      {/* ─── Degree Type Selection Screen ─── */}
+      {degreeType === "" && (
+        <div className="flex min-h-screen">
+          {/* Left Blue Panel */}
+          <div className="hidden lg:flex w-[440px] shrink-0 bg-[#3438d8] text-white flex-col justify-between p-10 relative overflow-hidden">
+            <div className="relative z-10">
+              <h2 className="text-xl font-bold tracking-tight font-headline">RIBRIZ</h2>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-white/60 font-semibold mt-1">Elite Academic Intel</p>
+            </div>
+            <div className="relative z-10 space-y-6">
+              <p className="text-xs uppercase tracking-[0.15em] text-white/60 font-semibold">Before we begin</p>
+              <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight font-headline whitespace-pre-line">{"What level\nare you\napplying for?"}</h1>
+              <p className="text-white/70 text-base leading-relaxed max-w-sm">
+                Your answer shapes the entire profile we build for you — questions, benchmarks, and strategy are all tailored to your goal.
+              </p>
+            </div>
+            <div className="relative z-10 flex items-center gap-3 bg-white/10 rounded-xl px-5 py-3.5">
+              <span className="material-symbols-outlined text-white/80 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
+              <span className="text-sm text-white/80 font-medium">Your data is secure and encrypted</span>
+            </div>
+            <div className="absolute top-[-80px] right-[-80px] w-[300px] h-[300px] rounded-full border border-white/10" />
+            <div className="absolute top-[-40px] right-[-40px] w-[220px] h-[220px] rounded-full border border-white/5" />
+          </div>
+
+          {/* Right Selection Panel */}
+          <div className="flex-1 flex flex-col items-center justify-center bg-white px-8 md:px-16 py-12">
+            <div className="w-full max-w-lg">
+              <div className="mb-10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1">Application Profile</p>
+                <h2 className="text-2xl font-bold font-headline text-on-surface">What are you applying for?</h2>
+                <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">
+                  This helps us show only the questions that matter for your application — no irrelevant fields, no wasted time.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bachelor's card */}
+                <button
+                  onClick={() => selectDegreeType("bachelors")}
+                  className="group p-8 border-2 border-surface-container-high text-left hover:border-primary hover:bg-primary-fixed/20 transition-all"
+                >
+                  <span className="material-symbols-outlined text-primary text-4xl mb-4 block" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
+                  <h3 className="text-xl font-bold font-headline text-on-surface mb-2">Bachelor&apos;s</h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">
+                    Completed 10th & 12th. We&apos;ll ask about your school scores, SAT, and English proficiency.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {["10th & 12th Marks", "English Proficiency", "SAT Score"].map((tag) => (
+                      <span key={tag} className="text-[10px] font-bold uppercase tracking-[0.1em] text-primary bg-primary-fixed px-2 py-1">{tag}</span>
+                    ))}
+                  </div>
+                </button>
+                {/* Master's card */}
+                <button
+                  onClick={() => selectDegreeType("masters")}
+                  className="group p-8 border-2 border-surface-container-high text-left hover:border-primary hover:bg-primary-fixed/20 transition-all"
+                >
+                  <span className="material-symbols-outlined text-primary text-4xl mb-4 block" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                  <h3 className="text-xl font-bold font-headline text-on-surface mb-2">Master&apos;s / MBA</h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">
+                    Completed a Bachelor&apos;s degree. We&apos;ll ask about your college, GPA, GRE/GMAT, and work experience.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {["Bachelor's Degree", "GPA / CGPA", "GRE / GMAT", "Work Experience"].map((tag) => (
+                      <span key={tag} className="text-[10px] font-bold uppercase tracking-[0.1em] text-primary bg-primary-fixed px-2 py-1">{tag}</span>
+                    ))}
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Step 1: Identity & Target Clarity ─── */}
-      {step === 1 && (
+      {degreeType !== "" && step === 1 && (
         <div className="flex min-h-screen">
           {/* Left Blue Panel */}
           <div className="hidden lg:flex w-[440px] shrink-0 bg-[#3438d8] text-white flex-col justify-between p-10 relative overflow-hidden">
@@ -686,9 +770,9 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Advanced Academic Intel */}
-                <div>
-                  <SectionBadge>Advanced Academic Intel</SectionBadge>
+                {/* Advanced Academic Intel — Masters only */}
+                {degreeType === "masters" && <div>
+                  <SectionBadge>Bachelor&apos;s Degree Details</SectionBadge>
                   <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <LightField
@@ -696,7 +780,6 @@ export default function OnboardingPage() {
                         value={form.degree}
                         onChange={(v) => update("degree", v)}
                         placeholder="e.g. Bachelor of Science"
-                        required
                       />
                       <LightField
                         label="Major / Specialization"
@@ -711,7 +794,6 @@ export default function OnboardingPage() {
                         value={form.college}
                         onChange={(v) => update("college", v)}
                         placeholder="e.g. IIT Delhi"
-                        required
                       />
                       <div>
                         <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.12em] block mb-3">
@@ -819,7 +901,7 @@ export default function OnboardingPage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </div>}
 
                 <StepNavButtons step={step} prev={prev} nextLabel="Continue to Step 3" />
               </form>
@@ -944,8 +1026,36 @@ export default function OnboardingPage() {
 
               <hr className="border-surface-container" />
 
-              {/* Aptitude Tests */}
-              <div>
+              {/* Aptitude Tests — Bachelor's: SAT only */}
+              {degreeType === "bachelors" && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant mb-1">
+                    Cognitive Assessment
+                  </p>
+                  <h2 className="text-2xl font-bold font-headline text-on-surface mb-8">
+                    Aptitude Test Scores
+                  </h2>
+                  <div className="max-w-xs">
+                    <div className="bg-surface-container-low p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="material-symbols-outlined text-primary text-2xl">school</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded">Undergraduate</span>
+                      </div>
+                      <p className="font-bold text-on-surface mb-4">SAT Score</p>
+                      <LightField
+                        label=""
+                        value={form.sat}
+                        onChange={(v) => update("sat", v)}
+                        placeholder="Total (400–1600)"
+                        type="number"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Aptitude Tests — Master's: GRE + GMAT only */}
+              {degreeType === "masters" && <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant mb-1">
                   Cognitive Assessment
                 </p>
@@ -953,27 +1063,7 @@ export default function OnboardingPage() {
                   Aptitude Test Scores
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* SAT */}
-                  <div className="bg-surface-container-low p-6 rounded-2xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="material-symbols-outlined text-primary text-2xl">
-                        school
-                      </span>
-                      <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded">
-                        Undergraduate
-                      </span>
-                    </div>
-                    <p className="font-bold text-on-surface mb-4">SAT Score</p>
-                    <LightField
-                      label=""
-                      value={form.sat}
-                      onChange={(v) => update("sat", v)}
-                      placeholder="Total (400-1600)"
-                      type="number"
-                    />
-                  </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* GRE */}
                   <div className="bg-surface-container-low p-6 rounded-2xl">
                     <div className="flex items-center justify-between mb-4">
@@ -1034,7 +1124,7 @@ export default function OnboardingPage() {
                     </label>
                   </div>
                 </div>
-              </div>
+              </div>}
 
               <hr className="border-surface-container" />
 
@@ -1047,15 +1137,10 @@ export default function OnboardingPage() {
                   Planning to take any tests?
                 </h2>
                 <div className="flex flex-wrap gap-3">
-                  {[
-                    "IELTS",
-                    "TOEFL",
-                    "PTE",
-                    "Duolingo",
-                    "SAT",
-                    "GRE",
-                    "GMAT",
-                  ].map((test) => (
+                  {(degreeType === "bachelors"
+                    ? ["IELTS", "TOEFL", "PTE", "Duolingo", "SAT"]
+                    : ["IELTS", "TOEFL", "PTE", "Duolingo", "GRE", "GMAT"]
+                  ).map((test) => (
                     <button
                       key={test}
                       type="button"
@@ -1100,68 +1185,88 @@ export default function OnboardingPage() {
               >
                 {/* Professional History */}
                 <div>
-                  <SectionBadge>Professional History</SectionBadge>
+                  <SectionBadge>{degreeType === "bachelors" ? "Internship History" : "Professional History"}</SectionBadge>
                   <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <LightField
-                        label="Total Work Experience (months)"
-                        value={form.workExpMonths}
-                        onChange={(v) => update("workExpMonths", v)}
-                        placeholder="e.g. 24"
-                        type="number"
-                      />
+                    {degreeType === "masters" && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <LightField
+                            label="Total Work Experience (months)"
+                            value={form.workExpMonths}
+                            onChange={(v) => update("workExpMonths", v)}
+                            placeholder="e.g. 24"
+                            type="number"
+                          />
+                          <LightField
+                            label="Number of Internships"
+                            value={form.internships}
+                            onChange={(v) => update("internships", v)}
+                            placeholder="e.g. 3"
+                            type="number"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <LightField
+                            label="Current / Most Recent Company"
+                            value={form.currentCompany}
+                            onChange={(v) => update("currentCompany", v)}
+                            placeholder="e.g. Google, TCS, startup name"
+                          />
+                          <LightField
+                            label="Current / Most Recent Job Title"
+                            value={form.currentJobTitle}
+                            onChange={(v) => update("currentJobTitle", v)}
+                            placeholder="e.g. Software Engineer, Analyst"
+                          />
+                        </div>
+                      </>
+                    )}
+                    {degreeType === "bachelors" && (
                       <LightField
                         label="Number of Internships"
                         value={form.internships}
                         onChange={(v) => update("internships", v)}
-                        placeholder="e.g. 3"
+                        placeholder="e.g. 2"
                         type="number"
                       />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <LightField
-                        label="Current / Most Recent Company"
-                        value={form.currentCompany}
-                        onChange={(v) => update("currentCompany", v)}
-                        placeholder="e.g. Google, TCS, startup name"
-                      />
-                      <LightField
-                        label="Current / Most Recent Job Title"
-                        value={form.currentJobTitle}
-                        onChange={(v) => update("currentJobTitle", v)}
-                        placeholder="e.g. Software Engineer, Analyst"
-                      />
-                    </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Impact & Achievements */}
                 <div>
-                  <SectionBadge>Impact & Achievements</SectionBadge>
+                  <SectionBadge>{degreeType === "bachelors" ? "Internships & Leadership" : "Impact & Achievements"}</SectionBadge>
                   <p className="text-xs text-on-surface-variant mb-6 -mt-2">
-                    Top universities care about impact, not just job titles. What
-                    did you create, improve, or lead?
+                    {degreeType === "bachelors"
+                      ? "Internships, school projects, and leadership roles show universities your potential beyond marks."
+                      : "Top universities care about impact, not just job titles. What did you create, improve, or lead?"}
                   </p>
                   <div className="space-y-8">
-                    <LightTextArea
-                      label="Key Achievements & Impact"
-                      value={form.keyAchievements}
-                      onChange={(v) => update("keyAchievements", v)}
-                      placeholder="e.g. Led a team of 5 to launch a product used by 10K users; Reduced processing time by 40% through automation..."
-                      rows={4}
-                    />
+                    {degreeType === "masters" && (
+                      <LightTextArea
+                        label="Key Achievements & Impact"
+                        value={form.keyAchievements}
+                        onChange={(v) => update("keyAchievements", v)}
+                        placeholder="e.g. Led a team of 5 to launch a product used by 10K users; Reduced processing time by 40% through automation..."
+                        rows={4}
+                      />
+                    )}
                     <LightTextArea
                       label="Leadership Roles"
                       value={form.leadershipRoles}
                       onChange={(v) => update("leadershipRoles", v)}
-                      placeholder="e.g. Team Lead, Project Manager, Club President, Teaching Assistant..."
+                      placeholder={degreeType === "bachelors"
+                        ? "e.g. School Head Boy/Girl, Club President, Sports Captain, Event Organizer..."
+                        : "e.g. Team Lead, Project Manager, Club President, Teaching Assistant..."}
                       rows={3}
                     />
                     <LightTextArea
                       label="Internship Details"
                       value={form.internshipDetails}
                       onChange={(v) => update("internshipDetails", v)}
-                      placeholder="e.g. Summer intern at Microsoft (3 months) — Built internal dashboard; Research intern at IISc..."
+                      placeholder={degreeType === "bachelors"
+                        ? "e.g. Summer intern at a local firm (2 months) — assisted with marketing; school project on renewable energy..."
+                        : "e.g. Summer intern at Microsoft (3 months) — Built internal dashboard; Research intern at IISc..."}
                       rows={3}
                     />
                   </div>
