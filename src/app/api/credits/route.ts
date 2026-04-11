@@ -4,11 +4,6 @@ import { prisma } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import { CREDIT_BUNDLES } from "@/lib/subscription/plans";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 // GET: Return current credit balance
 export async function GET() {
   try {
@@ -41,6 +36,10 @@ export async function GET() {
 // POST: Create Razorpay order for a credit bundle purchase
 export async function POST(request: Request) {
   try {
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    });
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
