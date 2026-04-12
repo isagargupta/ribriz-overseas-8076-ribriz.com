@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod/v4";
+import { sendCapiEventServer } from "@/lib/capi";
 
 const onboardingSchema = z.object({
   // Step 1: Identity
@@ -360,6 +361,13 @@ export async function POST(request: Request) {
           scholarshipPref: body.scholarshipPref || null,
         },
       });
+    });
+
+    await sendCapiEventServer({
+      event_name: "Lead",
+      event_id: `lead_${user.id}`,
+      email: body.email || user.email || undefined,
+      phone: body.phone || undefined,
     });
 
     return NextResponse.json({ success: true, userId: user.id });

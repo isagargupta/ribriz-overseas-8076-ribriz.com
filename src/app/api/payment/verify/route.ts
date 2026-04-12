@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import { addCredits } from "@/lib/subscription/credits";
+import { sendCapiEventServer } from "@/lib/capi";
 
 // POST: Verify a completed Razorpay payment and immediately activate it.
 // Called from the Razorpay checkout handler callback on the client.
@@ -64,6 +65,17 @@ export async function POST(request: Request) {
       });
       await addCredits(paymentOrder.userId, paymentOrder.creditsAmount, "recharge");
 
+      await sendCapiEventServer({
+        event_name: "Purchase",
+        event_id: razorpay_order_id,
+        email: user.email ?? undefined,
+        custom_data: {
+          value: paymentOrder.amountPaise / 100,
+          currency: "INR",
+          content_name: `Credits: ${paymentOrder.creditsAmount}`,
+        },
+      });
+
       return NextResponse.json({ ok: true, type: "credits", credits: paymentOrder.creditsAmount });
 
     } else {
@@ -94,6 +106,17 @@ export async function POST(request: Request) {
       if (paymentOrder.creditsAmount > 0) {
         await addCredits(paymentOrder.userId, paymentOrder.creditsAmount, "plan_included");
       }
+
+      await sendCapiEventServer({
+        event_name: "Purchase",
+        event_id: razorpay_order_id,
+        email: user.email ?? undefined,
+        custom_data: {
+          value: paymentOrder.amountPaise / 100,
+          currency: "INR",
+          content_name: `Plan: ${paymentOrder.tier}`,
+        },
+      });
 
       return NextResponse.json({
         ok: true,

@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { createHmac } from "crypto";
 import { prisma } from "@/lib/db";
 import { addCredits } from "@/lib/subscription/credits";
+import { sendCapiEventServer } from "@/lib/capi";
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
 
   const paymentOrder = await prisma.paymentOrder.findUnique({
     where: { razorpayOrderId },
+    include: { user: { select: { email: true } } },
   });
 
   if (!paymentOrder) {
@@ -63,6 +65,17 @@ export async function POST(request: Request) {
 
     await addCredits(paymentOrder.userId, creditsToAdd, "recharge");
 
+    await sendCapiEventServer({
+      event_name: "Purchase",
+      event_id: razorpayOrderId,
+      email: paymentOrder.user.email ?? undefined,
+      custom_data: {
+        value: paymentOrder.amountPaise / 100,
+        currency: "INR",
+        content_name: `Credits: ${creditsToAdd}`,
+      },
+    });
+
   } else {
     // ── Plan purchase ───────────────────────────────────────
     const expiresAt = new Date();
@@ -92,6 +105,17 @@ export async function POST(request: Request) {
     if (paymentOrder.creditsAmount > 0) {
       await addCredits(paymentOrder.userId, paymentOrder.creditsAmount, "plan_included");
     }
+
+    await sendCapiEventServer({
+      event_name: "Purchase",
+      event_id: razorpayOrderId,
+      email: paymentOrder.user.email ?? undefined,
+      custom_data: {
+        value: paymentOrder.amountPaise / 100,
+        currency: "INR",
+        content_name: `Plan: ${paymentOrder.tier}`,
+      },
+    });
   }
 
   return new Response("OK", { status: 200 });
