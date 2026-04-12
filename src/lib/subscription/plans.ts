@@ -1,7 +1,7 @@
 import type { SubscriptionTier } from "@/generated/prisma/client";
 
 // ─── Credit Bundles (Pay-as-you-go) ─────────────────────────────────────────
-// Minimum recharge ₹1,500. GST (18%) added on top at checkout.
+// Minimum recharge ₹3,599. GST (18%) added on top at checkout.
 
 export interface CreditBundle {
   id: string;
@@ -10,8 +10,8 @@ export interface CreditBundle {
   gstAmount: number;       // 18% of basePrice
   totalPrice: number;      // basePrice + gstAmount
   amountPaise: number;     // totalPrice * 100, sent to Razorpay
-  priceDisplay: string;    // "₹1,500"
-  totalDisplay: string;    // "₹1,770 incl. GST"
+  priceDisplay: string;    // "₹3,050"
+  totalDisplay: string;    // "₹3,599 incl. GST"
   popular: boolean;
 }
 
@@ -19,12 +19,12 @@ export const CREDIT_BUNDLES: Record<string, CreditBundle> = {
   starter: {
     id: "starter",
     credits: 100,
-    basePrice: 1500,
-    gstAmount: 270,
-    totalPrice: 1770,
-    amountPaise: 177000,
-    priceDisplay: "₹1,500",
-    totalDisplay: "₹1,770 incl. GST",
+    basePrice: 3599,
+    gstAmount: 648,
+    totalPrice: 4247,
+    amountPaise: 424700,
+    priceDisplay: "₹3,599",
+    totalDisplay: "₹4,247 incl. GST",
     popular: false,
   },
   value: {
@@ -52,7 +52,7 @@ export const CREDIT_BUNDLES: Record<string, CreditBundle> = {
 };
 
 // Credits per credit when you buy the value pack = ₹3,000/250 = ₹12/credit
-// Reference: ₹1,500/100 = ₹15/credit, ₹5,000/500 = ₹10/credit
+// Reference: ₹3,599/100 = ₹36/credit, ₹5,000/500 = ₹10/credit
 
 // ─── Credit Costs Per Feature ────────────────────────────────────────────────
 

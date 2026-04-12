@@ -369,7 +369,10 @@ export default function SettingsPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Zap size={15} className="text-primary" />
+                  <span
+                    className="material-symbols-outlined leading-none text-primary"
+                    style={{ fontSize: 16, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+                  >bolt</span>
                   <h3 className="text-base font-black text-on-surface font-headline">Credits</h3>
                   <span className="badge-primary">Pay-as-you-go</span>
                 </div>
@@ -380,7 +383,10 @@ export default function SettingsPage() {
 
               {/* Live balance */}
               <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-primary/[0.06] border border-primary/15 rounded-xl">
-                <Zap size={14} className="text-primary" />
+                <span
+                  className="material-symbols-outlined leading-none text-primary"
+                  style={{ fontSize: 16, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+                >bolt</span>
                 <span className="text-lg font-black text-primary font-headline">
                   {credits !== null ? credits.toLocaleString() : "—"}
                 </span>
@@ -469,7 +475,7 @@ export default function SettingsPage() {
             </div>
 
             <p className="text-[10px] text-on-surface-variant/40 font-medium">
-              All prices exclude 18% GST · Minimum recharge ₹1,500
+              All prices exclude 18% GST · Minimum recharge ₹3,599
             </p>
           </section>
 
@@ -547,8 +553,11 @@ export default function SettingsPage() {
                           <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-md">
                             60 days
                           </span>
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-primary">
-                            <Zap size={9} className="text-primary" />
+                          <span className="flex items-center gap-0.5 text-[10px] font-bold text-primary">
+                            <span
+                              className="material-symbols-outlined leading-none"
+                              style={{ fontSize: 11, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+                            >bolt</span>
                             {plan.includedCredits} credits
                           </span>
                         </div>

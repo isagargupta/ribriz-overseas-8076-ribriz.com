@@ -389,8 +389,11 @@ function PlanCard({
             <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-md">
               60 days access
             </span>
-            <span className="flex items-center gap-1 text-[10px] font-bold text-primary">
-              <Zap size={9} /> {plan.includedCredits} credits included
+            <span className="flex items-center gap-0.5 text-[10px] font-bold text-primary">
+              <span
+                className="material-symbols-outlined leading-none"
+                style={{ fontSize: 11, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+              >bolt</span> {plan.includedCredits} credits included
             </span>
           </div>
 
@@ -537,7 +540,10 @@ export function DashboardUpsellSection() {
                 : "border-primary/25 text-primary bg-primary/[0.05]"
             )}
           >
-            <Zap size={13} />
+            <span
+              className="material-symbols-outlined leading-none"
+              style={{ fontSize: 14, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+            >bolt</span>
             <span>{credits}</span>
             <span className="text-[10px] font-semibold text-on-surface-variant">credits</span>
           </div>
@@ -569,7 +575,7 @@ export function DashboardUpsellSection() {
         </div>
 
         <p className="text-[10px] text-on-surface-variant/40 font-medium mt-3">
-          All prices exclude 18% GST · Minimum recharge ₹1,500 · Credits never expire
+          All prices exclude 18% GST · Minimum recharge ₹3,599 · Credits never expire
         </p>
       </div>
 

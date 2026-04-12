@@ -107,7 +107,12 @@ export function CreditGateModal() {
         <div className="flex items-start justify-between p-6 border-b border-outline-variant/20">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="material-symbols-outlined text-error text-xl">bolt</span>
+              <div className="w-7 h-7 rounded-lg bg-error/10 flex items-center justify-center shrink-0">
+                <span
+                  className="material-symbols-outlined text-error leading-none"
+                  style={{ fontSize: 16, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+                >bolt</span>
+              </div>
               <h2 className="text-base font-bold text-on-surface font-headline">Out of Credits</h2>
             </div>
             <p className="text-sm text-on-surface-variant leading-snug">{gateMessage}</p>
@@ -123,8 +128,12 @@ export function CreditGateModal() {
         {/* Balance row */}
         <div className="px-6 py-4 flex items-center justify-between bg-surface-container-low border-b border-outline-variant/20">
           <span className="text-xs font-bold uppercase tracking-wider text-outline">Current Balance</span>
-          <span className={`text-sm font-bold tabular-nums ${credits === 0 ? "text-error" : "text-on-surface"}`}>
-            ⚡ {credits} credits
+          <span className={`flex items-center gap-1 text-sm font-bold tabular-nums ${credits === 0 ? "text-error" : "text-on-surface"}`}>
+            <span
+              className="material-symbols-outlined leading-none"
+              style={{ fontSize: 14, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+            >bolt</span>
+            {credits} credits
           </span>
         </div>
 
@@ -150,8 +159,12 @@ export function CreditGateModal() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-on-surface">
-                    ⚡ {bundle.credits} credits
+                  <p className="flex items-center gap-1 text-sm font-bold text-on-surface">
+                    <span
+                      className="material-symbols-outlined leading-none text-primary"
+                      style={{ fontSize: 14, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+                    >bolt</span>
+                    {bundle.credits} credits
                     {bundle.popular && (
                       <span className="ml-2 text-[10px] font-bold bg-primary text-on-primary px-2 py-0.5 uppercase tracking-wider">
                         Best Value

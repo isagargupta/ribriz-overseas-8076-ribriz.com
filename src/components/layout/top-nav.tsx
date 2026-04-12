@@ -58,7 +58,10 @@ export function TopNav({
               : "border-primary/30 text-primary bg-primary/8 cursor-default"
             }`}
         >
-          <span className="text-[11px]">⚡</span>
+          <span
+            className="material-symbols-outlined leading-none"
+            style={{ fontSize: 13, fontVariationSettings: "'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 20" }}
+          >bolt</span>
           <span>{credits}</span>
         </button>
 
