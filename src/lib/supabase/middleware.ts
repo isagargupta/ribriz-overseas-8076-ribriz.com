@@ -42,7 +42,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === "/" ||
     isAuthPage ||
     request.nextUrl.pathname.startsWith("/api/auth/") ||
-    request.nextUrl.pathname.startsWith("/auth/");
+    request.nextUrl.pathname.startsWith("/auth/") ||
+    request.nextUrl.pathname === "/privacy" ||
+    request.nextUrl.pathname === "/terms" ||
+    request.nextUrl.pathname === "/refund" ||
+    request.nextUrl.pathname === "/cookies";
 
   // Protected routes: redirect to /login if not authenticated
   if (!user && !isPublicPage) {

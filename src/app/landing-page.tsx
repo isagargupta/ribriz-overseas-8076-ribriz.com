@@ -963,7 +963,7 @@ export function LandingPage() {
             </div>
 
             {/* Links */}
-            <div className="md:col-span-7 grid grid-cols-3 gap-8">
+            <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-8">
               <div>
                 <h4 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: "rgba(255,255,255,0.25)" }}>Platform</h4>
                 <ul className="space-y-3.5">
@@ -1017,6 +1017,27 @@ export function LandingPage() {
                         onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.9)")}
                         onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
                       >{c}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: "rgba(255,255,255,0.25)" }}>Legal</h4>
+                <ul className="space-y-3.5">
+                  {[
+                    { label: "Privacy Policy", href: "/privacy" },
+                    { label: "Terms of Service", href: "/terms" },
+                    { label: "Refund Policy", href: "/refund" },
+                    { label: "Cookie Policy", href: "/cookies" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <Link
+                        href={l.href}
+                        className="text-sm transition-colors"
+                        style={{ color: "rgba(255,255,255,0.45)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.9)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+                      >{l.label}</Link>
                     </li>
                   ))}
                 </ul>
