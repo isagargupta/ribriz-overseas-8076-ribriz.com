@@ -48,10 +48,22 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === "/refund" ||
     request.nextUrl.pathname === "/cookies";
 
+  // Only protect UI routes — API routes handle their own auth in the route handler
+  const isAdminRoute =
+    request.nextUrl.pathname.startsWith("/admin") &&
+    !request.nextUrl.pathname.startsWith("/api/");
+
   // Protected routes: redirect to /login if not authenticated
   if (!user && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Admin routes: only allow users with app_metadata.role === "admin"
+  if (isAdminRoute && user?.app_metadata?.role !== "admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

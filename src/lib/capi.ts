@@ -1,4 +1,4 @@
-const CAPI_URL = "https://capi.ribriz.com/event";
+const CAPI_EXTERNAL_URL = "https://capi.ribriz.com/event";
 
 interface CapiEventPayload {
   event_name: string;
@@ -8,15 +8,12 @@ interface CapiEventPayload {
   custom_data?: Record<string, unknown>;
 }
 
-// Client-side: call from React components (uses NEXT_PUBLIC key)
+// Client-side: proxied through /api/capi to avoid CORS and keep the key server-only
 export async function sendCapiEvent(payload: CapiEventPayload): Promise<void> {
   try {
-    await fetch(CAPI_URL, {
+    await fetch("/api/capi", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.NEXT_PUBLIC_CAPI_API_KEY!,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
   } catch (err) {
@@ -24,10 +21,10 @@ export async function sendCapiEvent(payload: CapiEventPayload): Promise<void> {
   }
 }
 
-// Server-side: call from API routes (uses server-only key, not exposed to browser)
+// Server-side: call from API routes directly with the server-only key
 export async function sendCapiEventServer(payload: CapiEventPayload): Promise<void> {
   try {
-    await fetch(CAPI_URL, {
+    await fetch(CAPI_EXTERNAL_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

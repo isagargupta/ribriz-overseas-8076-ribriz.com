@@ -18,6 +18,12 @@ enum SubscriptionTier {
   elite
 }
 
+enum UserRole {
+  user
+  admin
+  support
+}
+
 enum PaymentStatus {
   created
   paid
@@ -117,6 +123,7 @@ model User {
   visaRejections       Boolean          @default(false)
   visaRejectionDetails String?
 
+  role               UserRole         @default(user)
   createdAt          DateTime         @default(now())
   onboardingComplete      Boolean          @default(false)
   subscriptionTier        SubscriptionTier @default(free)

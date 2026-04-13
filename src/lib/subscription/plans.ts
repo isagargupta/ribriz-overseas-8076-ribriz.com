@@ -2,6 +2,7 @@ import type { SubscriptionTier } from "@/generated/prisma/client";
 
 // ─── Credit Bundles (Pay-as-you-go) ─────────────────────────────────────────
 // Minimum recharge ₹3,599. GST (18%) added on top at checkout.
+// Tiers: Starter 100cr @ ₹3,599 | Value 500cr @ ₹5,900 | Power 1500cr @ ₹14,999
 
 export interface CreditBundle {
   id: string;
@@ -29,30 +30,29 @@ export const CREDIT_BUNDLES: Record<string, CreditBundle> = {
   },
   value: {
     id: "value",
-    credits: 250,
-    basePrice: 3000,
-    gstAmount: 540,
-    totalPrice: 3540,
-    amountPaise: 354000,
-    priceDisplay: "₹3,000",
-    totalDisplay: "₹3,540 incl. GST",
+    credits: 500,
+    basePrice: 5900,
+    gstAmount: 1062,
+    totalPrice: 6962,
+    amountPaise: 696200,
+    priceDisplay: "₹5,900",
+    totalDisplay: "₹6,962 incl. GST",
     popular: true,
   },
   power: {
     id: "power",
-    credits: 500,
-    basePrice: 5000,
-    gstAmount: 900,
-    totalPrice: 5900,
-    amountPaise: 590000,
-    priceDisplay: "₹5,000",
-    totalDisplay: "₹5,900 incl. GST",
+    credits: 1500,
+    basePrice: 14999,
+    gstAmount: 2700,
+    totalPrice: 17699,
+    amountPaise: 1769900,
+    priceDisplay: "₹14,999",
+    totalDisplay: "₹17,699 incl. GST",
     popular: false,
   },
 };
 
-// Credits per credit when you buy the value pack = ₹3,000/250 = ₹12/credit
-// Reference: ₹3,599/100 = ₹36/credit, ₹5,000/500 = ₹10/credit
+// Per-credit rates: ₹3,599/100 = ₹35.99 | ₹5,900/500 = ₹11.80 (save 67%) | ₹14,999/1500 = ₹10.00 (save 72%)
 
 // ─── Credit Costs Per Feature ────────────────────────────────────────────────
 

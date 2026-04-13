@@ -475,7 +475,7 @@ export default function SettingsPage() {
             </div>
 
             <p className="text-[10px] text-on-surface-variant/40 font-medium">
-              All prices exclude 18% GST · Minimum recharge ₹3,599
+              All prices exclude 18% GST · More credits = lower price per credit
             </p>
           </section>
 

@@ -575,7 +575,7 @@ export function DashboardUpsellSection() {
         </div>
 
         <p className="text-[10px] text-on-surface-variant/40 font-medium mt-3">
-          All prices exclude 18% GST · Minimum recharge ₹3,599 · Credits never expire
+          All prices exclude 18% GST · Credits never expire · More credits = lower price per credit
         </p>
       </div>
 

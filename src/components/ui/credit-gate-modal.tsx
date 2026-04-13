@@ -11,6 +11,12 @@ declare global {
   }
 }
 
+type RazorpayHandlerResponse = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+};
+
 export function CreditGateModal() {
   const { gateVisible, gateMessage, hideCreditGate, credits, refreshCredits } = useCreditContext();
   const [selected, setSelected] = useState<string>("value");
@@ -28,13 +34,30 @@ export function CreditGateModal() {
     document.body.appendChild(script);
   }, []);
 
-  const pollStatus = useCallback(
-    async (orderId: string) => {
+  const verifyAndActivate = useCallback(
+    async (response: RazorpayHandlerResponse) => {
+      setConfirming(true);
+      // Fast path: direct server-side verify
+      try {
+        const res = await fetch("/api/payment/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(response),
+        });
+        if (res.ok) {
+          await refreshCredits();
+          setConfirming(false);
+          hideCreditGate();
+          return;
+        }
+      } catch { /* fall through to polling */ }
+
+      // Fallback: poll status (webhook may activate it)
       const MAX = 20;
       for (let i = 0; i < MAX; i++) {
         await new Promise((r) => setTimeout(r, 2000));
         try {
-          const res = await fetch(`/api/subscription/status?orderId=${orderId}`);
+          const res = await fetch(`/api/subscription/status?orderId=${response.razorpay_order_id}`);
           if (res.ok) {
             const data = await res.json();
             if (data.status === "paid") {
@@ -62,7 +85,7 @@ export function CreditGateModal() {
       const res = await fetch("/api/credits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bundleId: selected }),
+        body: JSON.stringify({ bundle: selected }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to create order");
@@ -74,9 +97,9 @@ export function CreditGateModal() {
         name: "RIBRIZ Credits",
         description: `${bundle.credits} Credits`,
         order_id: data.orderId,
-        handler: (_response: Record<string, unknown>) => {
-          setConfirming(true);
-          pollStatus(data.orderId);
+        handler: (response: RazorpayHandlerResponse) => {
+          setLoading(false);
+          verifyAndActivate(response);
         },
         prefill: {},
         theme: { color: "#3525cd" },
@@ -91,7 +114,7 @@ export function CreditGateModal() {
       alert(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
-  }, [selected, pollStatus]);
+  }, [selected, verifyAndActivate]);
 
   if (!gateVisible) return null;
 
