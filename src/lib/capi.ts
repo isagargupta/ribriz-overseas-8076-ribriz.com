@@ -1,4 +1,4 @@
-const CAPI_EXTERNAL_URL = "https://capi.ribriz.com/event";
+const CAPI_EXTERNAL_URL = `${process.env.CAPI_URL}/event`;
 
 interface CapiEventPayload {
   event_name: string;

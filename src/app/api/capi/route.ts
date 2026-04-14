@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const CAPI_URL = "https://capi.ribriz.com/event";
+const CAPI_URL = `${process.env.CAPI_URL}/event`;
 
 export async function POST(request: Request) {
   try {

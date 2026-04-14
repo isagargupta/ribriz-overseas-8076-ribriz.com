@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/db";
+import { sendCapiEventServer } from "@/lib/capi";
 import crypto from "node:crypto";
 
 export const runtime = "nodejs";
@@ -131,13 +132,19 @@ export async function POST(request: Request) {
       console.error("User sync failed:", e);
     }
 
-    // Welcome email for new signups (fire-and-forget)
+    // Welcome email + CompleteRegistration event for new signups (fire-and-forget)
     if (state.type === "signup" && state.name) {
       const origin = new URL(request.url).origin;
       fetch(`${origin}/api/email/welcome`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: state.email, name: state.name }),
+      }).catch(() => {});
+
+      sendCapiEventServer({
+        event_name: "CompleteRegistration",
+        event_id: `reg-${userId!}`,
+        email: state.email,
       }).catch(() => {});
     }
 
