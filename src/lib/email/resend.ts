@@ -10,4 +10,4 @@ export function getResend(): Resend {
 }
 
 export const FROM_EMAIL = "RIBRIZ <noreply@mail.ribriz.com>";
-export const SUPPORT_EMAIL = "support@mail.ribriz.com";
+export const SUPPORT_EMAIL = "sgupta@ribriz.com";

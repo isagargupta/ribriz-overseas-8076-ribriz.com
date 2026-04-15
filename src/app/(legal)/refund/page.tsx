@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 const EFFECTIVE_DATE = "23 April 2024";
-const CONTACT_EMAIL = "billing@ribriz.com";
+const CONTACT_EMAIL = "sgupta@ribriz.com";
 const COMPANY_NAME = "RIBRIZ OVERSEAS VENTURES PRIVATE LIMITED";
 const ADDRESS = "Unit 101, Oxford Towers, 139, HAL Old Airport Rd, H.A.L II Stage, Bangalore North, Bangalore – 560008, Karnataka, India";
 const CIN = "U85499KA2024PTC187740";

@@ -953,12 +953,12 @@ export function LandingPage() {
               </p>
               {/* Email pill */}
               <a
-                href="mailto:support@mail.ribriz.com"
+                href="mailto:sgupta@ribriz.com"
                 className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}
               >
                 <span className="material-symbols-outlined text-[16px]" style={{ color: "#bfc1ff" }}>mail</span>
-                support@mail.ribriz.com
+                sgupta@ribriz.com
               </a>
             </div>
 

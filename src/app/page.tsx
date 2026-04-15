@@ -127,7 +127,7 @@ export default function Page() {
               "AI-powered study abroad platform helping students apply to universities without agents.",
             contactPoint: {
               "@type": "ContactPoint",
-              email: "support@mail.ribriz.com",
+              email: "sgupta@ribriz.com",
               contactType: "customer support",
             },
             sameAs: [],

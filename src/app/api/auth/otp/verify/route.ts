@@ -9,12 +9,18 @@ import crypto from "node:crypto";
 export const runtime = "nodejs";
 
 const OTP_COOKIE = "ribriz_otp_state";
+const WA_VERIFIED_COOKIE = "ribriz_wa_verified";
 
 interface OtpState {
   email: string;
   otp_hash: string;
   type: "signup" | "login";
   name: string;
+  // Registration fields (signup only)
+  phone?: string;
+  dob?: string;
+  city?: string;
+  education?: string;
   exp: number;
 }
 
@@ -37,7 +43,7 @@ function verifyState(token: string, secret: string): OtpState | null {
 
 export async function POST(request: Request) {
   try {
-    const { otp } = await request.json() as { otp: string };
+    const { otp } = (await request.json()) as { otp: string };
 
     if (!otp || otp.length !== 6) {
       return NextResponse.json({ error: "Invalid code" }, { status: 400 });
@@ -84,7 +90,10 @@ export async function POST(request: Request) {
 
       if (error) {
         if (error.message.toLowerCase().includes("already")) {
-          return NextResponse.json({ error: "An account with this email already exists. Please sign in." }, { status: 400 });
+          return NextResponse.json(
+            { error: "An account with this email already exists. Please sign in." },
+            { status: 400 }
+          );
         }
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
@@ -112,20 +121,29 @@ export async function POST(request: Request) {
 
     // For login, get userId from the established session
     if (state.type === "login") {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 });
       }
       userId = user.id;
     }
 
-    // Sync user to Prisma
+    // Sync user to Prisma (with registration fields for new signups)
     try {
       const existing = await prisma.user.findUnique({ where: { id: userId! } });
       if (!existing) {
         const name = state.name || state.email.split("@")[0];
         await prisma.user.create({
-          data: { id: userId!, email: state.email, name },
+          data: {
+            id: userId!,
+            email: state.email,
+            name,
+            ...(state.phone && { phone: state.phone }),
+            ...(state.dob && { dob: new Date(state.dob) }),
+            ...(state.city && { city: state.city }),
+          },
         });
       }
     } catch (e) {
@@ -151,8 +169,11 @@ export async function POST(request: Request) {
     const redirect = state.type === "signup" ? "/onboarding" : "/dashboard";
     const response = NextResponse.json({ redirect });
     response.cookies.set(OTP_COOKIE, "", { maxAge: 0, path: "/" });
+    // Clear WhatsApp verified cookie after successful signup
+    if (state.type === "signup") {
+      response.cookies.set(WA_VERIFIED_COOKIE, "", { maxAge: 0, path: "/" });
+    }
     return response;
-
   } catch (err) {
     console.error("OTP verify error:", err);
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });

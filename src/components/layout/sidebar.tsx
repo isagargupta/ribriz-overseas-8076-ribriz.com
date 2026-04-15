@@ -30,7 +30,7 @@ const navGroups = [
 ];
 
 const bottomNav = [
-  { label: "Support", href: "mailto:support@mail.ribriz.com", icon: "help" },
+  { label: "Support", href: "mailto:sgupta@ribriz.com", icon: "help" },
   { label: "Settings", href: "/settings", icon: "settings" },
 ];
 
