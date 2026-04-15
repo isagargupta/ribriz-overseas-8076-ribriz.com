@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Loader2, Mail, ArrowLeft, Sparkles } from "lucide-react";
 
 type Step = "email" | "otp";
@@ -16,14 +16,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"google" | "linkedin" | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
 
   useEffect(() => {
-    if (searchParams.get("error") === "auth") {
+    if (window.location.search.includes("error=auth")) {
       setError("Sign-in failed. Please try again.");
     }
-  }, [searchParams]);
+  }, []);
 
   const postJSON = async (url: string, body: object) => {
     const controller = new AbortController();
