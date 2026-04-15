@@ -7,6 +7,13 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/dashboard";
 
+  // On Vercel, origin can be an internal URL — use x-forwarded-host for the public domain
+  const forwardedHost = (request as Request & { headers: Headers }).headers.get("x-forwarded-host");
+  const baseUrl =
+    process.env.NODE_ENV === "development" || !forwardedHost
+      ? origin
+      : `https://${forwardedHost}`;
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -22,9 +29,11 @@ export async function GET(request: Request) {
           }).catch((e) => console.error("User create failed:", e));
         }
       }
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${baseUrl}${next}`);
+    } else {
+      console.error("OAuth callback error:", error.message);
     }
   }
 
-  return NextResponse.redirect(`${origin}/login`);
+  return NextResponse.redirect(`${baseUrl}/login?error=auth`);
 }

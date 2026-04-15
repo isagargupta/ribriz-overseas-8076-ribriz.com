@@ -156,7 +156,10 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       openRazorpay({ ...data, bundleName: data.bundleName }, "credits");
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    }
     finally { setPurchasing(null); }
   };
 
@@ -172,7 +175,10 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       openRazorpay({ ...data, planName: data.planName }, "plan");
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    }
     finally { setPurchasing(null); }
   };
 
