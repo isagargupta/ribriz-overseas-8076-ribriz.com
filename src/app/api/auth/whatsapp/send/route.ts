@@ -5,7 +5,9 @@ import crypto from "node:crypto";
 export const runtime = "nodejs";
 
 const WA_COOKIE = "ribriz_wa_otp_state";
-const PHONE_NUMBER_ID = "1044242082107280";
+const CHATWOOT_URL = "https://crm.wyriz.dev";
+const CHATWOOT_ACCOUNT_ID = 1;
+const CHATWOOT_INBOX_ID = 5;
 
 function signState(payload: object, secret: string): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -14,11 +16,79 @@ function signState(payload: object, secret: string): string {
 }
 
 function normalizePhone(raw: string): string {
-  // Remove whitespace, dashes, parentheses, leading +
   let digits = raw.replace(/[\s\-\(\)\+]/g, "");
-  // If exactly 10 digits (Indian number without country code), prepend 91
   if (/^\d{10}$/.test(digits)) return `91${digits}`;
   return digits;
+}
+
+async function chatwootFetch(url: string, options: RequestInit): Promise<unknown> {
+  const res = await fetch(url, options);
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Chatwoot ${res.status}: ${text.slice(0, 200)}`);
+  return JSON.parse(text);
+}
+
+async function sendOTPViaChatwoot(phone: string, otp: string, firstName: string): Promise<void> {
+  const token = process.env.CHATWOOT_API_TOKEN;
+  if (!token) throw new Error("CHATWOOT_API_TOKEN not set");
+
+  const headers = {
+    "api_access_token": token,
+    "Content-Type": "application/json",
+  };
+
+  // Step 1: Find or create contact
+  const searchData = await chatwootFetch(
+    `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/contacts/search?q=${encodeURIComponent(phone)}`,
+    { headers }
+  ) as { payload?: { id: number }[] };
+
+  let contactId: number;
+  if (searchData.payload && searchData.payload.length > 0) {
+    contactId = searchData.payload[0].id;
+  } else {
+    const contactData = await chatwootFetch(
+      `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/contacts`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ name: firstName, phone_number: `+${phone}` }),
+      }
+    ) as { id?: number; payload?: { contact?: { id: number } } };
+    contactId = contactData.id ?? contactData.payload?.contact?.id ?? 0;
+    if (!contactId) throw new Error(`No contact id in response: ${JSON.stringify(contactData)}`);
+  }
+
+  // Step 2: Create new conversation in WhatsApp inbox
+  const convData = await chatwootFetch(
+    `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ inbox_id: CHATWOOT_INBOX_ID, contact_id: contactId }),
+    }
+  ) as { id: number };
+  if (!convData.id) throw new Error(`No conversation id in response: ${JSON.stringify(convData)}`);
+
+  // Step 3: Send OTP via WhatsApp template through Chatwoot
+  await chatwootFetch(
+    `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations/${convData.id}/messages`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        content: otp,
+        message_type: "outgoing",
+        private: false,
+        template_params: {
+          name: "ribriz_otp",
+          category: "AUTHENTICATION",
+          language: "en_US",
+          processed_params: { "1": otp },
+        },
+      }),
+    }
+  );
 }
 
 export async function POST(request: Request) {
@@ -61,66 +131,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Server misconfiguration." }, { status: 500 });
     }
 
-    const token = process.env.WHATSAPP_TOKEN;
-    if (!token) {
-      console.error("WA OTP send: WHATSAPP_TOKEN not set");
-      return NextResponse.json({ error: "WhatsApp service not configured." }, { status: 500 });
-    }
-
     const otp = String(crypto.randomInt(100000, 999999));
     const otpHash = crypto.createHmac("sha256", secret).update(otp).digest("hex");
 
-    // Send OTP via WhatsApp Cloud API using approved authentication template
-    const waRes = await fetch(
-      `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: normalizedPhone,
-          type: "template",
-          template: {
-            name: "ribriz_otp",
-            language: { code: "en_US" },
-            components: [
-              {
-                type: "body",
-                parameters: [{ type: "text", text: otp }],
-              },
-              {
-                type: "button",
-                sub_type: "copy_code",
-                index: "0",
-                parameters: [{ type: "coupon_code", text: otp }],
-              },
-            ],
-          },
-        }),
-      }
-    );
-
-    if (!waRes.ok) {
-      const errBody = await waRes.json().catch(() => ({})) as {
-        error?: { message?: string; code?: number; error_subcode?: number };
-      };
-      console.error("WhatsApp API error:", JSON.stringify(errBody));
-
-      // Surface actionable Meta error codes
-      const metaCode = errBody?.error?.code;
-      const metaMsg = errBody?.error?.message ?? "";
-
-      let userMsg = "Failed to send WhatsApp OTP. Please try again.";
-      if (metaCode === 190) userMsg = "WhatsApp token is invalid or expired. Contact support.";
-      else if (metaCode === 131030) userMsg = "This number is not registered as a test recipient. Add it in Meta Business Manager first.";
-      else if (metaCode === 131047) userMsg = "Cannot reach this WhatsApp number right now. Please try again later.";
-      else if (metaMsg) userMsg = `WhatsApp error: ${metaMsg}`;
-
-      return NextResponse.json({ error: userMsg }, { status: 500 });
-    }
+    await sendOTPViaChatwoot(normalizedPhone, otp, firstName.trim());
 
     const state = signState(
       {
