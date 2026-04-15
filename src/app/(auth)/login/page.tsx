@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, ArrowLeft, Sparkles } from "lucide-react";
@@ -14,15 +13,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<"google" | "linkedin" | null>(null);
   const router = useRouter();
-  const supabase = createClient();
-
-  useEffect(() => {
-    if (window.location.search.includes("error=auth")) {
-      setError("Sign-in failed. Please try again.");
-    }
-  }, []);
 
   const postJSON = async (url: string, body: object) => {
     const controller = new AbortController();
@@ -82,24 +73,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = async () => {
-    setOauthLoading("google");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) { setError(error.message); setOauthLoading(null); }
-  };
-
-  const handleLinkedInLogin = async () => {
-    setOauthLoading("linkedin");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "linkedin_oidc",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) { setError(error.message); setOauthLoading(null); }
   };
 
   return (
@@ -178,51 +151,6 @@ export default function LoginPage() {
             {/* ── Step 1: Email ── */}
             {step === "email" && (
               <>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={handleGoogleLogin}
-                    disabled={oauthLoading !== null}
-                    className="flex items-center justify-center gap-2 py-3 px-4 bg-surface-low border border-outline/30 rounded-xl text-sm font-semibold text-on-surface hover:bg-surface hover:border-outline/50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {oauthLoading === "google" ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 48 48">
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                        <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.0 24.0 0 0 0 0 21.56l7.98-6.19z" />
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                      </svg>
-                    )}
-                    Google
-                  </button>
-                  <button
-                    onClick={handleLinkedInLogin}
-                    disabled={oauthLoading !== null}
-                    className="flex items-center justify-center gap-2 py-3 px-4 bg-surface-low border border-outline/30 rounded-xl text-sm font-semibold text-on-surface hover:bg-surface hover:border-outline/50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {oauthLoading === "linkedin" ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#0A66C2">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                      </svg>
-                    )}
-                    LinkedIn
-                  </button>
-                </div>
-
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-outline/30" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-white px-3 text-on-surface-variant font-medium">
-                      or continue with email
-                    </span>
-                  </div>
-                </div>
-
                 <form onSubmit={handleSendOTP} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">
