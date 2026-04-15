@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 
     // Send OTP via WhatsApp Cloud API using approved authentication template
     const waRes = await fetch(
-      `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`,
+      `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
       {
         method: "POST",
         headers: {
@@ -93,9 +93,9 @@ export async function POST(request: Request) {
               },
               {
                 type: "button",
-                sub_type: "url",
+                sub_type: "copy_code",
                 index: "0",
-                parameters: [{ type: "text", text: otp }],
+                parameters: [{ type: "coupon_code", text: otp }],
               },
             ],
           },
