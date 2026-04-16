@@ -11,11 +11,10 @@ import {
   GraduationCap,
   FileText,
   BarChart3,
-  MessageCircle,
   CheckCircle2,
 } from "lucide-react";
 
-type Step = "personal" | "details" | "whatsapp" | "whatsapp-otp" | "email" | "email-otp";
+type Step = "personal" | "details" | "whatsapp" | "email" | "email-otp";
 type Education = "12th" | "bachelor" | "masters";
 
 const PROGRESS_STAGES = ["Personal", "Education", "WhatsApp", "Email"] as const;
@@ -24,7 +23,6 @@ const progressMap: Record<Step, number> = {
   personal: 0,
   details: 1,
   whatsapp: 2,
-  "whatsapp-otp": 2,
   email: 3,
   "email-otp": 3,
 };
@@ -122,50 +120,14 @@ export default function SignupPage() {
     setStep("whatsapp");
   };
 
-  // ── Step 3: Send WhatsApp OTP ──
-  const handleSendWhatsappOTP = async (e: { preventDefault(): void }) => {
+  // ── Step 3: WhatsApp number collected — skip verification for now ──
+  const handleWhatsappNext = (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
-    try {
-      const { ok, data } = await postJSON("/api/auth/whatsapp/send", {
-        phone,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        dob,
-        city: city.trim(),
-        education,
-      });
-      if (!ok) {
-        setError(data.error || "Failed to send OTP. Please try again.");
-      } else {
-        setOtp("");
-        setStep("whatsapp-otp");
-      }
-    } finally {
-      setLoading(false);
-    }
+    setStep("email");
   };
 
-  // ── Step 4: Verify WhatsApp OTP ──
-  const handleVerifyWhatsappOTP = async (e: { preventDefault(): void }) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const { ok, data } = await postJSON("/api/auth/whatsapp/verify", { otp });
-      if (!ok) {
-        setError(data.error || "Verification failed. Please try again.");
-        return;
-      }
-      setOtp("");
-      setStep("email");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ── Step 5: Send Email OTP ──
+  // ── Step 4: Send Email OTP ──
   const handleSendEmailOTP = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError("");
@@ -175,6 +137,10 @@ export default function SignupPage() {
         email,
         type: "signup",
         name: `${firstName.trim()} ${lastName.trim()}`,
+        phone: phone.trim(),
+        dob,
+        city: city.trim(),
+        education,
       });
       if (!ok) {
         setError(data.error || "Failed to send verification code.");
@@ -214,8 +180,7 @@ export default function SignupPage() {
   const stepTitles: Record<Step, string> = {
     personal: "Create your account",
     details: "About you",
-    whatsapp: "Verify WhatsApp",
-    "whatsapp-otp": "Verify WhatsApp",
+    whatsapp: "WhatsApp number",
     email: "Verify your email",
     "email-otp": "Verify your email",
   };
@@ -223,8 +188,7 @@ export default function SignupPage() {
   const stepSubtitles: Record<Step, string> = {
     personal: "Let's start with your basics",
     details: "Tell us a bit about your education",
-    whatsapp: "We'll send an OTP to your WhatsApp number",
-    "whatsapp-otp": `OTP sent to ${phone}`,
+    whatsapp: "Add your WhatsApp number to stay updated",
     email: "Almost there — verify your email to finish",
     "email-otp": `OTP sent to ${email}`,
   };
@@ -456,7 +420,7 @@ export default function SignupPage() {
 
             {/* ── STEP 3: WhatsApp Number ── */}
             {step === "whatsapp" && (
-              <form onSubmit={handleSendWhatsappOTP} className="space-y-4">
+              <form onSubmit={handleWhatsappNext} className="space-y-4">
                 <button
                   type="button"
                   onClick={() => { setStep("details"); setError(""); }}
@@ -471,7 +435,6 @@ export default function SignupPage() {
                   </label>
                   <input
                     type="tel"
-                    required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 9876543210"
@@ -479,7 +442,7 @@ export default function SignupPage() {
                     autoComplete="tel"
                   />
                   <p className="text-[11px] text-on-surface-variant ml-1">
-                    Include country code for international numbers
+                    Optional — we'll use this to send you updates
                   </p>
                 </div>
 
@@ -491,85 +454,14 @@ export default function SignupPage() {
 
                 <button
                   type="submit"
-                  disabled={loading || !phone.trim()}
-                  className="btn-primary w-full py-3 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
                 >
-                  {loading && <Loader2 size={16} className="animate-spin" />}
-                  Send OTP on WhatsApp
+                  Continue
                 </button>
               </form>
             )}
 
-            {/* ── STEP 4: WhatsApp OTP Verify ── */}
-            {step === "whatsapp-otp" && (
-              <>
-                <button
-                  onClick={() => { setStep("whatsapp"); setOtp(""); setError(""); }}
-                  className="flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-primary font-medium mb-6 transition-colors"
-                >
-                  <ArrowLeft size={14} /> Back
-                </button>
-
-                <form onSubmit={handleVerifyWhatsappOTP} className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-emerald-500/[0.04] border border-emerald-500/10 rounded-xl mb-2">
-                    <MessageCircle size={16} className="text-emerald-600 shrink-0" />
-                    <p className="text-xs text-emerald-800">
-                      We sent a 6-digit code to{" "}
-                      <strong>{phone}</strong> on WhatsApp.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">
-                      Verification Code
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      placeholder="000000"
-                      maxLength={6}
-                      className="input-premium w-full text-center text-2xl font-mono tracking-[0.5em]"
-                      autoFocus
-                    />
-                  </div>
-
-                  {error && (
-                    <p className="text-sm text-error font-medium bg-error/[0.04] border border-error/10 rounded-xl px-4 py-2.5">
-                      {error}
-                    </p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={loading || otp.length !== 6}
-                    className="btn-primary w-full py-3 text-sm disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {loading && <Loader2 size={16} className="animate-spin" />}
-                    Verify WhatsApp
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleSendWhatsappOTP}
-                    disabled={loading}
-                    className="w-full text-xs text-on-surface-variant hover:text-primary font-medium py-2 transition-colors disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 size={12} className="animate-spin" />
-                        Sending...
-                      </span>
-                    ) : (
-                      "Didn't receive the code? Resend"
-                    )}
-                  </button>
-                </form>
-              </>
-            )}
-
-            {/* ── STEP 5: Email ── */}
+            {/* ── STEP 4: Email ── */}
             {step === "email" && (
               <form onSubmit={handleSendEmailOTP} className="space-y-4">
                 <button
@@ -579,11 +471,6 @@ export default function SignupPage() {
                 >
                   <ArrowLeft size={14} /> Back
                 </button>
-
-                <div className="flex items-center gap-2 text-emerald-700 text-sm font-semibold mb-1">
-                  <CheckCircle2 size={15} />
-                  WhatsApp verified
-                </div>
 
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">
