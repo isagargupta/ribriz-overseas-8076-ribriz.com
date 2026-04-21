@@ -424,112 +424,102 @@ export default async function DashboardPage() {
   const nextDeadlineDays = deadlineRows.length > 0 ? deadlineRows[0].daysLeft : null;
 
   return (
-    <div className="p-4 sm:p-8 max-w-[1400px] mx-auto pb-20 md:pb-8">
-      {/* Auto-refresh every 2 minutes for live feel */}
+    <div className="p-4 sm:p-6 max-w-[1400px] mx-auto pb-20 md:pb-8">
       <AutoRefresh intervalMs={120000} />
 
       {/* ── Header ──────────────────────────────────────── */}
-      <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-headline">
+          <p className="text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-widest">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          </p>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-2xl font-black text-on-surface tracking-tight">
               Welcome back, {firstName}
             </h2>
             <LivePulse />
           </div>
-          <p className="text-sm text-on-surface-variant max-w-2xl leading-relaxed font-body">
-            Targeting{" "}
-            <span className="font-semibold text-primary">
-              {targetDegree === "masters" ? "Master's" : targetDegree === "mba" ? "MBA" : targetDegree === "phd" ? "PhD" : "Bachelor's"}
-            </span>{" "}
-            in <span className="font-semibold text-on-surface">{targetField}</span>
-            {targetCountries.length > 0 && (
-              <>
-                {" "}across{" "}
-                <span className="font-semibold text-on-surface">
-                  {targetCountries.slice(0, 3).join(", ")}
-                  {targetCountries.length > 3 && ` +${targetCountries.length - 3} more`}
-                </span>
-              </>
-            )}
-            {" "}for{" "}
-            <span className="px-2 py-0.5 bg-primary-container text-on-primary-container rounded text-xs font-bold">
-              {targetIntake}
-            </span>
+          <p className="text-sm text-on-surface-variant mt-1">
+            {targetDegree === "masters" ? "Master's" : targetDegree === "mba" ? "MBA" : targetDegree === "phd" ? "PhD" : "Bachelor's"}
+            {" · "}{targetField}
+            {targetCountries.length > 0 && ` · ${targetCountries.slice(0, 2).join(", ")}${targetCountries.length > 2 ? ` +${targetCountries.length - 2}` : ""}`}
+            {" · "}
+            <span className="font-semibold text-primary">{targetIntake}</span>
           </p>
         </div>
-        <div className="flex gap-2 sm:gap-3 shrink-0">
+        <div className="flex gap-2 shrink-0">
           <ExportRoadmapButton />
           <Link
             href="/riz-ai"
-            className="bg-gradient-to-r from-primary to-primary-container text-on-primary px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-md shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+            className="bg-primary text-on-primary px-4 py-2 text-xs font-bold rounded-lg hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm"
           >
-            <Sparkles size={14} />
+            <Sparkles size={13} />
             Ask Riz AI
           </Link>
         </div>
       </div>
 
-      {/* ── Quick Stats Row ─────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Link href="/applications" className="bg-surface-container-lowest rounded-xl p-5 border border-transparent hover:border-primary/20 transition-all group">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg text-on-primary-container">school</span>
+      {/* ── Stats Row ───────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <Link href="/applications" className="bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5 hover:border-primary/30 transition-all group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-sm text-primary">school</span>
             </div>
-            <AnimatedNumber value={totalApps} className="text-2xl font-extrabold text-on-surface font-headline" />
-          </div>
-          <p className="text-xs font-bold text-outline uppercase tracking-wider">Applications</p>
-          {appliedCount > 0 && (
-            <p className="text-[10px] text-primary font-semibold mt-1">{appliedCount} submitted</p>
-          )}
-        </Link>
-
-        <Link href="/documents" className="bg-surface-container-lowest rounded-xl p-5 border border-transparent hover:border-primary/20 transition-all group">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg text-on-secondary-container">description</span>
-            </div>
-            <span className="text-2xl font-extrabold text-on-surface font-headline">
-              <AnimatedNumber value={uploadedDocs} className="" />/{totalDocs || "0"}
-            </span>
-          </div>
-          <p className="text-xs font-bold text-outline uppercase tracking-wider">Documents Ready</p>
-          {verifiedDocs > 0 && (
-            <p className="text-[10px] text-secondary font-semibold mt-1">{verifiedDocs} verified</p>
-          )}
-        </Link>
-
-        <div className="bg-surface-container-lowest rounded-xl p-5 border border-transparent">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg text-on-tertiary-fixed">emoji_events</span>
-            </div>
-            <AnimatedNumber value={acceptedCount} className="text-2xl font-extrabold text-on-surface font-headline" />
-          </div>
-          <p className="text-xs font-bold text-outline uppercase tracking-wider">Acceptances</p>
-          {waitlistedCount > 0 && (
-            <p className="text-[10px] text-tertiary font-semibold mt-1">{waitlistedCount} waitlisted</p>
-          )}
-        </div>
-
-        <div className="bg-surface-container-lowest rounded-xl p-5 border border-transparent">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${nextDeadlineDays != null && nextDeadlineDays <= 14 ? "bg-error-container" : "bg-surface-container-high"}`}>
-              <span className={`material-symbols-outlined text-lg ${nextDeadlineDays != null && nextDeadlineDays <= 14 ? "text-on-error-container" : "text-on-surface-variant"}`}>schedule</span>
-            </div>
-            {nextDeadlineDays != null ? (
-              <AnimatedNumber value={nextDeadlineDays} className="text-2xl font-extrabold text-on-surface font-headline" />
-            ) : (
-              <span className="text-2xl font-extrabold text-outline font-headline">--</span>
+            {appliedCount > 0 && (
+              <span className="text-[10px] font-semibold text-primary">{appliedCount} submitted →</span>
             )}
           </div>
-          <p className="text-xs font-bold text-outline uppercase tracking-wider">Days to Deadline</p>
-          {nextDeadlineDays != null && nextDeadlineDays <= 14 && (
-            <p className="text-[10px] text-error font-semibold mt-1 flex items-center gap-1">
-              <LivePulse className="!h-1.5 !w-1.5" /> Urgent
-            </p>
+          <AnimatedNumber value={totalApps} className="text-4xl font-black text-on-surface" />
+          <p className="text-xs text-on-surface-variant mt-1 font-medium">Applications</p>
+        </Link>
+
+        <Link href="/documents" className="bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5 hover:border-primary/30 transition-all group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-sm text-secondary">description</span>
+            </div>
+            {verifiedDocs > 0 && (
+              <span className="text-[10px] font-semibold text-secondary">{verifiedDocs} verified →</span>
+            )}
+          </div>
+          <div className="flex items-baseline gap-0.5">
+            <AnimatedNumber value={uploadedDocs} className="text-4xl font-black text-on-surface" />
+            <span className="text-xl font-medium text-on-surface-variant">/{totalDocs || 0}</span>
+          </div>
+          <p className="text-xs text-on-surface-variant mt-1 font-medium">Documents Ready</p>
+        </Link>
+
+        <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-sm text-tertiary">emoji_events</span>
+            </div>
+            {waitlistedCount > 0 && (
+              <span className="text-[10px] font-semibold text-on-surface-variant">{waitlistedCount} waitlisted</span>
+            )}
+          </div>
+          <AnimatedNumber value={acceptedCount} className="text-4xl font-black text-on-surface" />
+          <p className="text-xs text-on-surface-variant mt-1 font-medium">Acceptances</p>
+        </div>
+
+        <div className={`bg-surface-container-lowest border rounded-xl p-5 ${nextDeadlineDays != null && nextDeadlineDays <= 14 ? "border-error/30" : "border-outline-variant/15"}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${nextDeadlineDays != null && nextDeadlineDays <= 14 ? "bg-error/10" : "bg-surface-container-high"}`}>
+              <span className={`material-symbols-outlined text-sm ${nextDeadlineDays != null && nextDeadlineDays <= 14 ? "text-error" : "text-on-surface-variant"}`}>schedule</span>
+            </div>
+            {nextDeadlineDays != null && nextDeadlineDays <= 14 && (
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-error">
+                <LivePulse className="!h-1.5 !w-1.5" /> Urgent
+              </span>
+            )}
+          </div>
+          {nextDeadlineDays != null ? (
+            <AnimatedNumber value={nextDeadlineDays} className="text-4xl font-black text-on-surface" />
+          ) : (
+            <span className="text-4xl font-black text-outline">--</span>
           )}
+          <p className="text-xs text-on-surface-variant mt-1 font-medium">Days to Deadline</p>
         </div>
       </div>
 
@@ -537,195 +527,93 @@ export default async function DashboardPage() {
       <DashboardUpgradeCTA tier={dbUser.subscriptionTier} />
 
       {/* ── Main Grid ───────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-        {/* ── Profile Strength (4 cols) ─────────────────── */}
-        <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 flex flex-col border border-transparent">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-              Profile Strength
-            </h3>
-            <span className="text-xs font-extrabold text-primary bg-primary-container px-2 py-0.5 rounded-full">
-              {profile.total}%
-            </span>
-          </div>
-
-          {/* Animated ring */}
-          <div className="flex justify-center py-4">
-            <ProfileRing percentage={profile.total} grade={grade} gradeLabel={gradeLabel} />
-          </div>
-
-          {/* Segment bars showing completed vs total */}
-          <div className="mb-4">
-            <div className="flex gap-0.5">
-              {profile.items.map((item, i) => (
-                <div
-                  key={i}
-                  className={`h-1.5 flex-1 rounded-full transition-all ${
-                    item.done ? "bg-primary" : "bg-surface-container-low"
-                  }`}
-                  title={`${item.label}: ${item.done ? "Complete" : "Missing"}`}
-                />
-              ))}
-            </div>
-            <p className="text-[10px] text-outline mt-1.5 text-center">
-              {profile.items.filter((i) => i.done).length} of {profile.items.length} fields complete
-            </p>
-          </div>
-
-          {/* Checklist */}
-          <div className="space-y-1 flex-1 overflow-y-auto max-h-44">
-            {profile.items.map((item, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-colors ${
-                  item.done
-                    ? "bg-transparent"
-                    : "bg-error-container/30"
-                }`}
-              >
-                <span
-                  className={`material-symbols-outlined text-sm ${
-                    item.done ? "text-primary" : "text-error"
-                  }`}
-                >
-                  {item.done ? "check_circle" : "radio_button_unchecked"}
-                </span>
-                <span
-                  className={`text-[11px] font-medium ${
-                    item.done
-                      ? "text-on-surface-variant line-through opacity-60"
-                      : "text-on-surface"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <Link
-            href="/onboarding"
-            className="mt-4 text-center text-xs font-bold text-primary py-2.5 border border-primary/20 rounded-lg hover:bg-primary-container transition-colors"
-          >
-            {profile.total >= 100 ? "Review Profile" : "Complete Profile"}
-          </Link>
-        </div>
-
-        {/* ── Application Pipeline (8 cols) ─────────────── */}
-        <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl border border-transparent overflow-hidden">
-          <div className="px-6 py-5 border-b border-surface-container-low flex justify-between items-center">
+        {/* ── Application Pipeline Kanban (8 cols) ──────── */}
+        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/15 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-                Application Pipeline
-              </h3>
+              <h3 className="text-sm font-bold text-on-surface">Application Pipeline</h3>
               {totalApps > 0 && <LivePulse />}
             </div>
-            <Link href="/applications" className="text-xs font-bold text-primary hover:underline">
-              Manage All
+            <Link href="/applications" className="text-xs font-semibold text-primary hover:underline">
+              Manage All →
             </Link>
           </div>
 
           {totalApps > 0 ? (
-            <>
-              {/* Status bar */}
-              <div className="px-6 pt-5 pb-3">
-                <div className="flex h-3 rounded-full overflow-hidden bg-surface-container-low gap-0.5">
-                  {(["not_started", "docs_pending", "sop_pending", "ready", "applied", "decision", "enrolled"] as const).map(
-                    (status) => {
-                      const count = appStatusCounts[status] || 0;
-                      if (count === 0) return null;
-                      const pct = (count / totalApps) * 100;
-                      const colors: Record<string, string> = {
-                        not_started: "bg-outline/30",
-                        docs_pending: "bg-secondary/50",
-                        sop_pending: "bg-tertiary/60",
-                        ready: "bg-primary/70",
-                        applied: "bg-primary",
-                        decision: "bg-secondary",
-                        enrolled: "bg-tertiary",
-                      };
-                      return (
-                        <div
-                          key={status}
-                          className={`${colors[status]} rounded-full transition-all`}
-                          style={{ width: `${pct}%` }}
-                          title={`${STATUS_LABELS[status]}: ${count}`}
-                        />
-                      );
-                    }
-                  )}
+            <div className="p-5">
+              <div className="overflow-x-auto pb-2 -mx-1 px-1">
+                <div className="flex gap-3 min-w-max">
+                  {(["not_started", "docs_pending", "sop_pending", "ready", "applied", "decision", "enrolled"] as const).map((status) => {
+                    const count = appStatusCounts[status] || 0;
+                    if (count === 0) return null;
+                    const statusApps = dbUser.applications.filter((a) => a.status === status);
+                    const colHeaderColors: Record<string, string> = {
+                      not_started: "bg-surface-container-high text-on-surface-variant",
+                      docs_pending: "bg-secondary/15 text-secondary",
+                      sop_pending: "bg-tertiary/15 text-tertiary",
+                      ready: "bg-primary/15 text-primary",
+                      applied: "bg-primary/20 text-primary",
+                      decision: "bg-secondary/20 text-secondary",
+                      enrolled: "bg-tertiary/20 text-tertiary",
+                    };
+                    return (
+                      <div key={status} className="w-44 flex-shrink-0">
+                        <div className="flex items-center justify-between mb-2.5 px-0.5">
+                          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider truncate">
+                            {STATUS_LABELS[status]}
+                          </span>
+                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0 ml-1 ${colHeaderColors[status]}`}>
+                            {count}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {statusApps.slice(0, 3).map((app) => {
+                            const days = daysUntil(app.program.applicationDeadline);
+                            const logo = getUniversityLogoUrl(app.program.university.logoUrl, app.program.university.websiteUrl);
+                            return (
+                              <Link
+                                key={app.id}
+                                href={`/applications/${app.id}`}
+                                className="block bg-surface border border-outline-variant/10 rounded-xl p-3 hover:border-primary/25 hover:shadow-sm transition-all"
+                              >
+                                <div className="flex items-center gap-2 mb-2">
+                                  <UniversityLogo logoUrl={logo} name={app.program.university.name} size={22} />
+                                  <p className="text-[11px] font-bold text-on-surface truncate flex-1 leading-tight">
+                                    {app.program.university.name}
+                                  </p>
+                                </div>
+                                <p className="text-[10px] text-on-surface-variant truncate mb-2 leading-tight">
+                                  {app.program.name}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] text-outline font-medium">{app.program.university.country}</span>
+                                  {days != null && days > 0 && (
+                                    <DeadlineCountdown days={days} className="text-[9px] font-bold text-on-surface-variant" />
+                                  )}
+                                </div>
+                              </Link>
+                            );
+                          })}
+                          {count > 3 && (
+                            <Link href="/applications" className="block text-center text-[10px] text-primary font-semibold py-1.5 hover:underline">
+                              +{count - 3} more
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Status legend */}
-              <div className="px-6 pb-4 flex flex-wrap gap-2">
-                {Object.entries(appStatusCounts).map(([status, count]) => (
-                  <span
-                    key={status}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold ${STATUS_COLORS[status] || "bg-surface-container text-on-surface-variant"}`}
-                  >
-                    {count} {STATUS_LABELS[status] || status}
-                  </span>
-                ))}
-              </div>
-
-              {/* Recent applications with logos */}
-              <div className="px-6 pb-5 space-y-2">
-                {dbUser.applications.slice(0, 4).map((app) => {
-                  const days = daysUntil(app.program.applicationDeadline);
-                  const logo = getUniversityLogoUrl(
-                    app.program.university.logoUrl,
-                    app.program.university.websiteUrl
-                  );
-                  return (
-                    <Link
-                      key={app.id}
-                      href={`/applications/${app.id}`}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-outline-variant/10 hover:bg-surface hover:border-primary/15 transition-all group"
-                    >
-                      <UniversityLogo
-                        logoUrl={logo}
-                        name={app.program.university.name}
-                        size={38}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-on-surface truncate">
-                          {app.program.university.name}
-                        </p>
-                        <p className="text-[11px] text-on-surface-variant truncate">
-                          {app.program.name} &middot; {app.program.university.country}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${STATUS_COLORS[app.status]}`}>
-                          {STATUS_LABELS[app.status]}
-                        </span>
-                        {days != null && days > 0 && (
-                          <DeadlineCountdown
-                            days={days}
-                            className="block text-[10px] mt-1 font-semibold"
-                          />
-                        )}
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </>
+            </div>
           ) : (
-            <div className="px-6 py-14 text-center">
-              <span className="material-symbols-outlined text-5xl text-outline/20 mb-4 block">school</span>
-              <p className="text-sm text-on-surface font-semibold mb-1">
-                No applications yet
-              </p>
-              <p className="text-xs text-outline mb-5">
-                Start by exploring universities matched to your profile
-              </p>
-              <Link
-                href="/universities"
-                className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-bold hover:opacity-90 transition-all"
-              >
+            <div className="px-5 py-14 text-center">
+              <span className="material-symbols-outlined text-4xl text-outline/20 mb-3 block">school</span>
+              <p className="text-sm font-bold text-on-surface mb-1">No applications yet</p>
+              <p className="text-xs text-on-surface-variant mb-5">Explore universities matched to your profile</p>
+              <Link href="/universities" className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition-all">
                 <span className="material-symbols-outlined text-sm">search</span>
                 Find Universities
               </Link>
@@ -733,36 +621,200 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* ── Upcoming Deadlines (8 cols) ───────────────── */}
-        <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl border border-transparent overflow-hidden">
-          <div className="px-6 py-5 border-b border-surface-container-low flex justify-between items-center">
+        {/* ── Profile Strength (4 cols) ─────────────────── */}
+        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-on-surface">Profile Strength</h3>
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              {profile.total}%
+            </span>
+          </div>
+
+          <div className="flex justify-center py-2">
+            <ProfileRing percentage={profile.total} grade={grade} gradeLabel={gradeLabel} />
+          </div>
+
+          <div className="my-3">
+            <div className="flex gap-0.5 h-1.5">
+              {profile.items.map((item, i) => (
+                <div key={i} className={`flex-1 rounded-full transition-all ${item.done ? "bg-primary" : "bg-surface-container-high"}`} />
+              ))}
+            </div>
+            <p className="text-[10px] text-on-surface-variant mt-1.5 text-center">
+              {profile.items.filter((i) => i.done).length} of {profile.items.length} complete
+            </p>
+          </div>
+
+          <div className="space-y-1 flex-1 overflow-y-auto max-h-44">
+            {profile.items.map((item, i) => (
+              <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${!item.done ? "bg-error/5" : ""}`}>
+                <span className={`material-symbols-outlined text-sm shrink-0 ${item.done ? "text-primary" : "text-error/50"}`}>
+                  {item.done ? "check_circle" : "radio_button_unchecked"}
+                </span>
+                <span className={`text-[11px] font-medium ${item.done ? "text-on-surface-variant line-through opacity-50" : "text-on-surface"}`}>
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <Link href="/onboarding" className="mt-4 block text-center text-xs font-bold text-primary py-2.5 border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors">
+            {profile.total >= 100 ? "Review Profile" : "Complete Profile →"}
+          </Link>
+        </div>
+
+        {/* ── Top University Matches (8 cols) ───────────── */}
+        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-                Upcoming Deadlines
-              </h3>
+              <h3 className="text-sm font-bold text-on-surface">Top University Matches</h3>
+              {topMatches.length > 0 && <LivePulse />}
+            </div>
+            <Link href="/universities" className="text-xs font-semibold text-primary hover:underline">
+              Explore All →
+            </Link>
+          </div>
+
+          {topMatches.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {topMatches.slice(0, 6).map((uni) => (
+                <Link
+                  key={uni.programId}
+                  href={`/universities/${uni.id}`}
+                  className="bg-surface border border-outline-variant/10 rounded-xl p-4 hover:border-primary/25 hover:shadow-sm transition-all group block"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <UniversityLogo logoUrl={uni.logoUrl} name={uni.name} size={34} />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-on-surface truncate leading-tight">{uni.name}</h4>
+                        <p className="text-[10px] text-on-surface-variant truncate">{uni.city}, {uni.country}</p>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-black px-2 py-1 rounded-lg shrink-0 ${uni.badgeColor}`}>
+                      {uni.score}%
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-on-surface-variant mb-3 truncate">{uni.course}</p>
+
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {uni.rank && (
+                      <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">QS #{uni.rank}</span>
+                    )}
+                    {uni.scholarships > 0 && (
+                      <span className="text-[9px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">{uni.scholarships} scholarships</span>
+                    )}
+                    {uni.stemDesignated && (
+                      <span className="text-[9px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">STEM</span>
+                    )}
+                    {uni.coopInternship && (
+                      <span className="text-[9px] font-bold text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded">Co-op</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2.5 border-t border-outline-variant/10">
+                    <span className="text-[9px] text-outline">
+                      {uni.deadline ? `Due ${formatDeadline(uni.deadline)}` : "Check website"}
+                    </span>
+                    <span className="text-[9px] font-semibold text-primary group-hover:underline">View →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="py-10 text-center">
+              <p className="text-sm text-on-surface-variant font-medium">
+                Complete your profile to see personalized matches.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Test Scores (4 cols) ──────────────────────── */}
+        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-on-surface">Test Scores</h3>
+            <Link href="/onboarding" className="text-[10px] font-semibold text-primary hover:underline">Update</Link>
+          </div>
+
+          {ac ? (
+            <div className="space-y-3">
+              <div className="bg-surface border border-outline-variant/10 rounded-xl p-3.5">
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="text-xs font-semibold text-on-surface-variant">GPA</span>
+                  <span className="text-xl font-black text-primary">
+                    {ac.gpa}
+                    <span className="text-sm font-medium text-on-surface-variant">
+                      /{ac.gpaScale === "scale_4" ? "4.0" : ac.gpaScale === "scale_10" ? "10" : "100"}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-[10px] text-on-surface-variant mt-1 truncate">{ac.degreeName} · {ac.collegeName}</p>
+              </div>
+
+              <div className="space-y-2.5 pt-1">
+                {testScores.map((t) => (
+                  <div key={t.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`material-symbols-outlined text-sm ${t.status === "done" ? "text-primary" : t.status === "low" ? "text-secondary" : "text-outline/30"}`}>
+                        {t.status === "done" ? "check_circle" : t.status === "low" ? "warning" : "radio_button_unchecked"}
+                      </span>
+                      <span className="text-xs font-semibold text-on-surface">{t.name}</span>
+                    </div>
+                    {t.score ? (
+                      <span className={`text-sm font-black ${t.status === "low" ? "text-secondary" : "text-on-surface"}`}>{t.score}</span>
+                    ) : (
+                      <span className="text-[10px] text-outline italic">Not taken</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {ac.workExperienceMonths > 0 && (
+                <div className="flex items-center justify-between pt-3 border-t border-outline-variant/10">
+                  <span className="text-xs text-on-surface-variant font-medium">Work Exp.</span>
+                  <span className="text-sm font-black text-on-surface">
+                    {ac.workExperienceMonths >= 12 ? `${Math.floor(ac.workExperienceMonths / 12)}y ${ac.workExperienceMonths % 12}m` : `${ac.workExperienceMonths}m`}
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-sm text-on-surface-variant">Complete onboarding to see scores.</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Upcoming Deadlines (8 cols) ───────────────── */}
+        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/15 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-on-surface">Upcoming Deadlines</h3>
               {deadlineRows.some((r) => r.daysLeft <= 14) && <LivePulse />}
             </div>
             {deadlineRows.length > 0 && (
-              <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded">
+              <span className="text-[10px] font-semibold text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-lg">
                 {deadlineRows.length} approaching
               </span>
             )}
           </div>
 
           {deadlineRows.length > 0 ? (
-            <div className="divide-y divide-surface-container-low">
+            <div className="divide-y divide-outline-variant/10">
               {deadlineRows.map((row, i) => (
-                <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-surface-container-high/50 transition-colors">
-                  <UniversityLogo logoUrl={row.logoUrl} name={row.university} size={36} />
+                <div key={i} className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface-container-low/60 transition-colors">
+                  <UniversityLogo logoUrl={row.logoUrl} name={row.university} size={34} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-on-surface truncate">{row.university}</p>
-                    <p className="text-[11px] text-on-surface-variant truncate">{row.program}</p>
+                    <p className="text-xs font-bold text-on-surface truncate">{row.university}</p>
+                    <p className="text-[10px] text-on-surface-variant truncate">{row.program}</p>
                   </div>
-                  <div className="text-right shrink-0 hidden sm:block">
+                  <div className="text-right hidden sm:block shrink-0">
                     <p className="text-xs font-medium text-on-surface">{row.deadline}</p>
                     <DeadlineCountdown days={row.daysLeft} className={`text-[10px] font-bold ${row.priority.text}`} />
                   </div>
-                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded ${row.priority.badge} text-[10px] font-bold shrink-0`}>
+                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 flex items-center gap-1.5 ${row.priority.badge}`}>
                     <span className={`w-1.5 h-1.5 ${row.priority.dot} rounded-full ${row.daysLeft <= 14 ? "animate-pulse" : ""}`} />
                     {row.priority.label}
                   </span>
@@ -776,178 +828,21 @@ export default async function DashboardPage() {
                     </span>
                     <span className="text-[9px] text-on-surface-variant">Docs</span>
                   </div>
-                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${STATUS_COLORS[row.status]}`}>
-                    {STATUS_LABELS[row.status]}
-                  </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="px-6 py-10 text-center text-sm text-outline font-medium">
-              No upcoming deadlines. Add universities to track deadlines.
-            </div>
-          )}
-        </div>
-
-        {/* ── Test Scores & Gaps (4 cols) ───────────────── */}
-        <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl border border-transparent p-6">
-          <div className="flex justify-between items-center mb-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-              Test Scores
-            </h3>
-            <Link href="/onboarding" className="text-[10px] font-bold text-primary hover:underline">
-              Update
-            </Link>
-          </div>
-
-          {ac ? (
-            <div className="space-y-4">
-              {/* GPA */}
-              <div className="p-3 rounded-lg bg-surface-container-low">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-on-surface">GPA</span>
-                  <span className="text-sm font-extrabold text-primary font-headline">
-                    {ac.gpa}/{ac.gpaScale === "scale_4" ? "4.0" : ac.gpaScale === "scale_10" ? "10" : "100"}
-                  </span>
-                </div>
-                <p className="text-[10px] text-on-surface-variant mt-1">
-                  {ac.degreeName} &middot; {ac.collegeName}
-                </p>
-              </div>
-
-              {/* Test scores */}
-              {testScores.map((t) => (
-                <div key={t.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`material-symbols-outlined text-sm ${
-                        t.status === "done"
-                          ? "text-primary"
-                          : t.status === "low"
-                          ? "text-secondary"
-                          : "text-outline/40"
-                      }`}
-                    >
-                      {t.status === "done"
-                        ? "check_circle"
-                        : t.status === "low"
-                        ? "warning"
-                        : "radio_button_unchecked"}
-                    </span>
-                    <span className="text-xs font-bold text-on-surface">{t.name}</span>
-                  </div>
-                  {t.score ? (
-                    <span className={`text-sm font-extrabold font-headline ${t.status === "low" ? "text-secondary" : "text-on-surface"}`}>
-                      {t.score}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold text-outline italic">Not taken</span>
-                  )}
-                </div>
-              ))}
-
-              {/* Work experience */}
-              {ac.workExperienceMonths > 0 && (
-                <div className="flex items-center justify-between pt-2 border-t border-surface-container-low">
-                  <span className="text-xs font-bold text-on-surface-variant">Work Experience</span>
-                  <span className="text-sm font-extrabold text-on-surface font-headline">
-                    {ac.workExperienceMonths >= 12
-                      ? `${Math.floor(ac.workExperienceMonths / 12)}y ${ac.workExperienceMonths % 12}m`
-                      : `${ac.workExperienceMonths}m`}
-                  </span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-sm text-outline font-medium">Complete onboarding to see scores.</p>
-            </div>
-          )}
-        </div>
-
-        {/* ── Top University Matches (8 cols) ───────────── */}
-        <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl border border-transparent p-6">
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-                Top University Matches
-              </h3>
-              {topMatches.length > 0 && <LivePulse />}
-            </div>
-            <Link href="/universities" className="text-xs font-bold text-primary hover:underline">
-              Explore All
-            </Link>
-          </div>
-
-          {topMatches.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {topMatches.slice(0, 6).map((uni) => (
-                <Link
-                  key={uni.programId}
-                  href={`/universities/${uni.id}`}
-                  className="flex items-start gap-3 p-4 border border-outline-variant/10 rounded-xl hover:bg-surface hover:border-primary/15 hover:shadow-sm transition-all cursor-pointer group"
-                >
-                  <UniversityLogo
-                    logoUrl={uni.logoUrl}
-                    name={uni.name}
-                    size={44}
-                    className="mt-0.5"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-sm font-bold text-on-surface truncate">{uni.name}</h4>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${uni.badgeColor}`}>
-                        {uni.score}%
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant truncate mt-0.5">{uni.course}</p>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
-                      {uni.rank && (
-                        <span className="text-[10px] font-bold text-primary bg-primary-container/50 px-1.5 py-0.5 rounded">
-                          QS #{uni.rank}
-                        </span>
-                      )}
-                      {uni.scholarships > 0 && (
-                        <span className="text-[10px] font-bold text-tertiary bg-tertiary-fixed/50 px-1.5 py-0.5 rounded">
-                          {uni.scholarships} scholarships
-                        </span>
-                      )}
-                      {uni.stemDesignated && (
-                        <span className="text-[10px] font-bold text-secondary bg-secondary-container px-1.5 py-0.5 rounded">
-                          STEM
-                        </span>
-                      )}
-                      {uni.coopInternship && (
-                        <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded">
-                          Co-op
-                        </span>
-                      )}
-                      {uni.country && (
-                        <span className="text-[10px] text-outline">
-                          {uni.city}, {uni.country}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="py-10 text-center">
-              <p className="text-sm text-outline font-medium">
-                Complete your profile to see personalized university matches.
-              </p>
+            <div className="px-5 py-10 text-center text-sm text-on-surface-variant font-medium">
+              No upcoming deadlines. Add universities to track.
             </div>
           )}
         </div>
 
         {/* ── Alerts & Actions (4 cols) ─────────────────── */}
-        <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl border border-transparent flex flex-col">
-          <div className="px-6 py-5 border-b border-surface-container-low flex items-center justify-between">
+        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/15 rounded-xl flex flex-col">
+          <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-                Alerts & Actions
-              </h3>
+              <h3 className="text-sm font-bold text-on-surface">Alerts & Actions</h3>
               {unreadAlerts > 0 && <LivePulse />}
             </div>
             {unreadAlerts > 0 && (
@@ -957,47 +852,31 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-2.5 max-h-80">
+          <div className="flex-1 overflow-y-auto p-4 space-y-1.5 max-h-72">
             {alerts.length > 0 ? (
               alerts.map((alert) => {
-                const icons: Record<string, { icon: string; bg: string; text: string }> = {
-                  deadline_approaching: { icon: "schedule", bg: "bg-error-container", text: "text-on-error-container" },
-                  missing_document: { icon: "upload_file", bg: "bg-secondary-container", text: "text-on-secondary-container" },
-                  new_scholarship: { icon: "redeem", bg: "bg-tertiary-fixed", text: "text-on-tertiary-fixed" },
-                  profile_incomplete: { icon: "person_alert", bg: "bg-primary-container", text: "text-on-primary-container" },
-                  status_update: { icon: "notifications", bg: "bg-surface-container-high", text: "text-on-surface-variant" },
+                const icons: Record<string, { icon: string; color: string }> = {
+                  deadline_approaching: { icon: "schedule", color: "text-error" },
+                  missing_document: { icon: "upload_file", color: "text-secondary" },
+                  new_scholarship: { icon: "redeem", color: "text-tertiary" },
+                  profile_incomplete: { icon: "person_alert", color: "text-primary" },
+                  status_update: { icon: "notifications", color: "text-on-surface-variant" },
                 };
                 const style = icons[alert.type] || icons.status_update;
-
                 return (
                   <div
                     key={alert.id}
-                    className={`flex gap-3 p-3 rounded-lg transition-colors ${!alert.isRead ? "bg-surface-container-low border border-primary/10" : "hover:bg-surface-container-low"}`}
+                    className={`flex gap-2.5 p-3 rounded-xl transition-colors ${!alert.isRead ? "bg-surface border border-primary/10" : "hover:bg-surface-container-low"}`}
                   >
-                    <div className={`w-8 h-8 rounded-full ${style.bg} flex items-center justify-center shrink-0`}>
-                      <span className={`material-symbols-outlined text-sm ${style.text}`}>
-                        {style.icon}
-                      </span>
-                    </div>
+                    <span className={`material-symbols-outlined text-sm mt-0.5 shrink-0 ${style.color}`}>{style.icon}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-on-surface font-semibold leading-tight truncate">
-                        {alert.title}
-                      </p>
-                      <p className="text-[10px] text-on-surface-variant mt-0.5 line-clamp-2">
-                        {alert.body}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                          alert.priority === "urgent" ? "bg-error-container text-on-error-container" :
-                          alert.priority === "high" ? "bg-secondary-container text-on-secondary-container" :
-                          "bg-surface-container-high text-on-surface-variant"
-                        }`}>
-                          {alert.priority}
-                        </span>
+                      <p className="text-xs font-semibold text-on-surface leading-tight">{alert.title}</p>
+                      <p className="text-[10px] text-on-surface-variant mt-0.5 line-clamp-2">{alert.body}</p>
+                      <div className="flex items-center gap-2 mt-1">
                         <RelativeTime date={alert.createdAt.toISOString()} className="text-[9px] text-outline" />
                         {alert.actionUrl && (
                           <Link href={alert.actionUrl} className="text-[10px] font-bold text-primary hover:underline ml-auto">
-                            Action
+                            Take action →
                           </Link>
                         )}
                       </div>
@@ -1006,12 +885,10 @@ export default async function DashboardPage() {
                 );
               })
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 {pendingDocs > 0 && (
-                  <Link href="/documents" className="flex gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-sm text-on-secondary-container">upload_file</span>
-                    </div>
+                  <Link href="/documents" className="flex gap-2.5 p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+                    <span className="material-symbols-outlined text-sm text-secondary mt-0.5 shrink-0">upload_file</span>
                     <div>
                       <p className="text-xs font-semibold text-on-surface">{pendingDocs} documents need uploading</p>
                       <p className="text-[10px] text-on-surface-variant">Upload to speed up applications</p>
@@ -1019,10 +896,8 @@ export default async function DashboardPage() {
                   </Link>
                 )}
                 {totalAppsNeedingSop > sopsWritten && (
-                  <Link href="/sop-writer" className="flex gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-sm text-on-tertiary-fixed">edit_note</span>
-                    </div>
+                  <Link href="/sop-writer" className="flex gap-2.5 p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+                    <span className="material-symbols-outlined text-sm text-tertiary mt-0.5 shrink-0">edit_note</span>
                     <div>
                       <p className="text-xs font-semibold text-on-surface">{totalAppsNeedingSop - sopsWritten} SOPs still needed</p>
                       <p className="text-[10px] text-on-surface-variant">Use AI to draft your SOPs</p>
@@ -1030,10 +905,8 @@ export default async function DashboardPage() {
                   </Link>
                 )}
                 {profile.total < 100 && (
-                  <Link href="/onboarding" className="flex gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-sm text-on-primary-container">person</span>
-                    </div>
+                  <Link href="/onboarding" className="flex gap-2.5 p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+                    <span className="material-symbols-outlined text-sm text-primary mt-0.5 shrink-0">person</span>
                     <div>
                       <p className="text-xs font-semibold text-on-surface">Profile {profile.total}% complete</p>
                       <p className="text-[10px] text-on-surface-variant">A complete profile gets better matches</p>
@@ -1041,10 +914,8 @@ export default async function DashboardPage() {
                   </Link>
                 )}
                 {totalApps === 0 && (
-                  <Link href="/universities" className="flex gap-3 p-3 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-sm text-on-primary-container">search</span>
-                    </div>
+                  <Link href="/universities" className="flex gap-2.5 p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+                    <span className="material-symbols-outlined text-sm text-primary mt-0.5 shrink-0">search</span>
                     <div>
                       <p className="text-xs font-semibold text-on-surface">Explore universities</p>
                       <p className="text-[10px] text-on-surface-variant">Find programs that match your profile</p>
@@ -1054,19 +925,16 @@ export default async function DashboardPage() {
                 {pendingDocs === 0 && totalApps > 0 && profile.total >= 100 && totalAppsNeedingSop <= sopsWritten && (
                   <div className="py-6 text-center">
                     <span className="material-symbols-outlined text-2xl text-primary/30 mb-2 block">check_circle</span>
-                    <p className="text-xs text-outline font-medium">All caught up!</p>
+                    <p className="text-xs text-on-surface-variant">All caught up!</p>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          <div className="p-4 bg-surface-container-low mt-auto border-t border-surface-container-low">
-            <Link
-              href="/riz-ai"
-              className="w-full text-center text-xs font-bold text-primary py-2 hover:bg-surface-container-highest rounded transition-colors uppercase tracking-widest flex items-center justify-center gap-2"
-            >
-              <Sparkles size={12} />
+          <div className="p-4 border-t border-outline-variant/10">
+            <Link href="/riz-ai" className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary py-2.5 rounded-lg text-xs font-bold hover:bg-primary/15 transition-colors">
+              <Sparkles size={13} />
               Get AI Advice
             </Link>
           </div>
@@ -1074,27 +942,23 @@ export default async function DashboardPage() {
 
         {/* ── Document Readiness (full width) ───────────── */}
         {totalDocs > 0 && (
-          <div className="lg:col-span-12 bg-surface-container-lowest rounded-xl border border-transparent p-6">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-outline">
-                Document Readiness
-              </h3>
-              <Link href="/documents" className="text-xs font-bold text-primary hover:underline">
-                Manage Documents
-              </Link>
+          <div className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant/15 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-on-surface">Document Readiness</h3>
+              <Link href="/documents" className="text-xs font-semibold text-primary hover:underline">Manage →</Link>
             </div>
 
             <div className="mb-4">
-              <div className="flex justify-between text-[10px] font-bold text-outline mb-2">
+              <div className="flex justify-between text-[10px] font-semibold text-on-surface-variant mb-1.5">
                 <span>{uploadedDocs} of {totalDocs} uploaded</span>
                 <span>{verifiedDocs} verified</span>
               </div>
-              <div className="flex h-2.5 rounded-full overflow-hidden bg-surface-container-low gap-0.5">
+              <div className="flex h-2 rounded-full overflow-hidden bg-surface-container-low gap-0.5">
                 {verifiedDocs > 0 && (
                   <div className="bg-primary rounded-full transition-all" style={{ width: `${(verifiedDocs / totalDocs) * 100}%` }} />
                 )}
                 {uploadedDocs - verifiedDocs > 0 && (
-                  <div className="bg-secondary/60 rounded-full transition-all" style={{ width: `${((uploadedDocs - verifiedDocs) / totalDocs) * 100}%` }} />
+                  <div className="bg-secondary/50 rounded-full transition-all" style={{ width: `${((uploadedDocs - verifiedDocs) / totalDocs) * 100}%` }} />
                 )}
               </div>
             </div>
@@ -1120,12 +984,12 @@ export default async function DashboardPage() {
                 if (catDocs.length === 0) return null;
                 const isComplete = catReady === catDocs.length;
                 return (
-                  <div key={cat} className={`p-3 rounded-lg text-center transition-all ${isComplete ? "bg-primary-container/30" : "bg-surface-container-low"}`}>
-                    <span className={`material-symbols-outlined text-lg ${isComplete ? "text-primary" : "text-outline/40"}`}>
+                  <div key={cat} className={`p-4 rounded-xl text-center border transition-all ${isComplete ? "border-primary/20 bg-primary/5" : "border-outline-variant/10 bg-surface"}`}>
+                    <span className={`material-symbols-outlined text-xl ${isComplete ? "text-primary" : "text-outline/40"}`}>
                       {catIcons[cat]}
                     </span>
-                    <p className="text-[10px] font-bold text-on-surface mt-1">{catLabels[cat]}</p>
-                    <p className={`text-[10px] font-bold mt-0.5 ${isComplete ? "text-primary" : "text-on-surface-variant"}`}>
+                    <p className="text-[11px] font-bold text-on-surface mt-1.5">{catLabels[cat]}</p>
+                    <p className={`text-xs font-black mt-0.5 ${isComplete ? "text-primary" : "text-on-surface-variant"}`}>
                       {catReady}/{catDocs.length}
                     </p>
                   </div>
@@ -1140,11 +1004,11 @@ export default async function DashboardPage() {
       <DashboardUpsellSection />
 
       {/* ── Footer ──────────────────────────────────────── */}
-      <footer className="mt-8 sm:mt-12 py-6 border-t border-surface-container flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-[10px] sm:text-[11px] text-outline font-medium tracking-tight text-center">
+      <footer className="mt-8 py-6 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p className="text-[11px] text-outline text-center">
           &copy; {new Date().getFullYear()} RIBRIZ Academic Consultancy. All rights reserved.
         </p>
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-[10px] sm:text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
+        <div className="flex flex-wrap justify-center gap-6 text-[11px] font-semibold text-on-surface-variant">
           <Link className="hover:text-primary transition-colors" href="/settings">Settings</Link>
           <Link className="hover:text-primary transition-colors" href="/settings">Privacy & Data</Link>
           <Link className="hover:text-primary transition-colors" href="/riz-ai">Ask Riz AI</Link>

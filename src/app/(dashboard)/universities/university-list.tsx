@@ -75,7 +75,7 @@ const DURATION_OPTIONS = [
 
 const BUCKET_META: Record<AdmissionBucket, { label: string; icon: string; color: string; bgColor: string; advice: string }> = {
   safety: { label: "Safety", icon: "verified_user", color: "text-green-700", bgColor: "bg-green-50 border-green-200", advice: "High admission confidence. Include 2-3." },
-  target: { label: "Target", icon: "ads_click", color: "text-blue-700", bgColor: "bg-blue-50 border-blue-200", advice: "Realistic chance. Core of your list (3-5)." },
+  target: { label: "Target", icon: "ads_click", color: "text-on-surface", bgColor: "bg-surface-container border-outline-variant/30", advice: "Realistic chance. Core of your list (3-5)." },
   reach: { label: "Reach", icon: "rocket_launch", color: "text-amber-700", bgColor: "bg-amber-50 border-amber-200", advice: "Competitive. Worth trying with strong SOP (2-3)." },
   long_shot: { label: "Ambitious", icon: "star", color: "text-red-700", bgColor: "bg-red-50 border-red-200", advice: "Significant gaps. Only with exceptional factors." },
 };

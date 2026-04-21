@@ -287,7 +287,7 @@ export default function RizAIPage() {
           {/* Agent badge */}
           <div className="flex items-center gap-2">
             <div className="relative">
-              <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-md bg-[#232d3e] flex items-center justify-center">
                 <span className="material-symbols-outlined text-white text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
               </div>
               <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-[1.5px] ring-[#010409] ${isLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
@@ -389,7 +389,7 @@ export default function RizAIPage() {
 
               {/* Hero */}
               <div className="text-center mb-12">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-[0_8px_32px_rgba(99,102,241,0.25)] mb-5">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#232d3e] shadow-[0_8px_32px_rgba(22,27,34,0.4)] mb-5">
                   <span className="material-symbols-outlined text-white text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white font-headline tracking-tight mb-2">
@@ -408,24 +408,24 @@ export default function RizAIPage() {
                     <button
                       key={wf.title}
                       onClick={() => { setSelectedTopic(wf.title); sendMessage(wf.prompt); }}
-                      className="riz-wf-card group text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-indigo-500/20 transition-all overflow-hidden relative"
+                      className="riz-wf-card group text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] transition-all overflow-hidden relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <div className="relative px-5 pt-5 pb-4">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-indigo-500/[0.1] flex items-center justify-center group-hover:bg-indigo-500/[0.15] transition-colors">
-                            <span className="material-symbols-outlined text-[20px] text-indigo-400">{wf.icon}</span>
+                          <div className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center group-hover:bg-[#2d3a4d]/[0.15] transition-colors">
+                            <span className="material-symbols-outlined text-[20px] text-white/40">{wf.icon}</span>
                           </div>
-                          <span className="text-[8px] font-bold tracking-[0.12em] text-indigo-400/60 bg-indigo-500/[0.08] px-2 py-0.5 rounded-full">{wf.tag}</span>
+                          <span className="text-[8px] font-bold tracking-[0.12em] text-white/35 bg-white/[0.05] px-2 py-0.5 rounded-full">{wf.tag}</span>
                         </div>
                         <h3 className="text-[14px] font-semibold text-white/90 mb-2 font-headline">{wf.title}</h3>
                         <p className="text-[11px] text-white/30 leading-[1.6]">{wf.desc}</p>
                       </div>
                       <div className="relative px-5 py-3 border-t border-white/[0.04] flex items-center justify-between">
-                        <span className="text-[10px] text-white/20 font-medium group-hover:text-indigo-400/80 transition-colors">
+                        <span className="text-[10px] text-white/20 font-medium group-hover:text-white/60 transition-colors">
                           Run workflow
                         </span>
-                        <span className="material-symbols-outlined text-[16px] text-white/10 group-hover:text-indigo-400/60 group-hover:translate-x-0.5 transition-all">
+                        <span className="material-symbols-outlined text-[16px] text-white/10 group-hover:text-white/40 group-hover:translate-x-0.5 transition-all">
                           arrow_forward
                         </span>
                       </div>
@@ -445,7 +445,7 @@ export default function RizAIPage() {
                       className="group flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-white/[0.05] bg-white/[0.015]
                         hover:bg-white/[0.04] hover:border-white/[0.1] transition-all text-left"
                     >
-                      <span className="material-symbols-outlined text-[18px] text-white/20 group-hover:text-indigo-400/60 transition-colors">{q.icon}</span>
+                      <span className="material-symbols-outlined text-[18px] text-white/20 group-hover:text-white/40 transition-colors">{q.icon}</span>
                       <span className="text-[12px] text-white/40 group-hover:text-white/70 transition-colors font-medium">{q.label}</span>
                     </button>
                   ))}
@@ -459,7 +459,7 @@ export default function RizAIPage() {
                 <div key={msg.id}>
                   {msg.role === "user" ? (
                     <div className="flex justify-end py-2">
-                      <div className="max-w-[80%] bg-indigo-600 text-white rounded-2xl rounded-br-md px-4 py-3 text-[13.5px] leading-relaxed whitespace-pre-wrap shadow-lg shadow-indigo-600/10">
+                      <div className="max-w-[80%] bg-[#232d3e] text-white rounded-2xl rounded-br-md px-4 py-3 text-[13.5px] leading-relaxed whitespace-pre-wrap shadow-lg shadow-black/20">
                         {msg.content}
                       </div>
                     </div>
@@ -467,7 +467,7 @@ export default function RizAIPage() {
                     <div className="py-3">
                       {/* Agent identity on first content */}
                       <div className="flex items-center gap-2 mb-2.5">
-                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shrink-0">
+                        <div className="w-6 h-6 rounded-lg bg-[#232d3e] flex items-center justify-center shrink-0">
                           <span className="material-symbols-outlined text-white text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
                         </div>
                         <span className="text-[11px] font-semibold text-white/50">Riz Agent</span>
@@ -478,10 +478,10 @@ export default function RizAIPage() {
 
                       {/* Agent thinking */}
                       {msg.thinking && (
-                        <div className="flex items-center gap-2.5 mb-3 ml-8 px-3 py-2 rounded-lg bg-indigo-500/[0.06] border border-indigo-500/[0.08]">
-                          <span className="material-symbols-outlined text-[14px] text-indigo-400 animate-spin shrink-0">progress_activity</span>
+                        <div className="flex items-center gap-2.5 mb-3 ml-8 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                          <span className="material-symbols-outlined text-[14px] text-white/40 animate-spin shrink-0">progress_activity</span>
                           <div>
-                            <span className="text-[9px] font-bold text-indigo-400/80 uppercase tracking-wider">Step {msg.thinking.step}</span>
+                            <span className="text-[9px] font-bold text-white/50 uppercase tracking-wider">Step {msg.thinking.step}</span>
                             <span className="text-[11px] text-white/35 ml-2">{msg.thinking.message}</span>
                           </div>
                         </div>
@@ -491,7 +491,7 @@ export default function RizAIPage() {
                       {msg.toolActivities && msg.toolActivities.length > 0 && (
                         <div className="mb-3 ml-8 rounded-xl border border-white/[0.06] bg-[#0d1117] overflow-hidden">
                           <div className="px-3.5 py-2 border-b border-white/[0.05] flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[13px] text-indigo-400/50">terminal</span>
+                            <span className="material-symbols-outlined text-[13px] text-white/30">terminal</span>
                             <span className="text-[10px] font-semibold text-white/35">Tool Execution</span>
                             <span className="text-[9px] text-white/15 ml-auto font-mono bg-white/[0.04] px-1.5 py-0.5 rounded">{msg.toolActivities.length} calls</span>
                           </div>
@@ -532,21 +532,21 @@ export default function RizAIPage() {
                               const isBlock = className?.includes("language-");
                               return isBlock
                                 ? <pre className="bg-white/[0.03] rounded-lg p-3 my-2 overflow-x-auto text-[11px] font-mono"><code>{children}</code></pre>
-                                : <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-indigo-300 text-[12px] font-mono">{children}</code>;
+                                : <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-white/70 text-[12px] font-mono">{children}</code>;
                             },
                             hr: () => <hr className="border-white/[0.06] my-3" />,
-                            blockquote: ({ children }) => <blockquote className="border-l-2 border-indigo-500/30 pl-3 my-2 text-white/40 italic">{children}</blockquote>,
+                            blockquote: ({ children }) => <blockquote className="border-l-2 border-white/20 pl-3 my-2 text-white/40 italic">{children}</blockquote>,
                             a: ({ href, children }) => (
                               <a href={href} target={href?.startsWith("/") ? undefined : "_blank"} rel={href?.startsWith("/") ? undefined : "noopener noreferrer"}
-                                className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors">{children}</a>
+                                className="text-white/50 hover:text-white/70 underline underline-offset-2 transition-colors">{children}</a>
                             ),
                           }}>{msg.content}</ReactMarkdown>
                         ) : isLoading ? (
                           <div className="flex items-center gap-2.5 py-1">
                             <div className="flex gap-1">
-                              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                              <span className="w-1.5 h-1.5 bg-white/55 rounded-full animate-bounce [animation-delay:0ms]" />
+                              <span className="w-1.5 h-1.5 bg-white/55 rounded-full animate-bounce [animation-delay:150ms]" />
+                              <span className="w-1.5 h-1.5 bg-white/55 rounded-full animate-bounce [animation-delay:300ms]" />
                             </div>
                           </div>
                         ) : null}
@@ -567,15 +567,15 @@ export default function RizAIPage() {
                         <div className="flex items-center gap-2 mt-3 ml-8">
                           <div className="inline-flex items-center gap-4 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04] text-[9px] font-mono text-white/25">
                             <span className="flex items-center gap-1.5">
-                              <span className="w-1 h-1 rounded-full bg-indigo-400/50" />
+                              <span className="w-1 h-1 rounded-full bg-white/35" />
                               {msg.agentMeta.toolCalls} tools
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <span className="w-1 h-1 rounded-full bg-indigo-400/50" />
+                              <span className="w-1 h-1 rounded-full bg-white/35" />
                               {msg.agentMeta.loopIterations} steps
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <span className="w-1 h-1 rounded-full bg-indigo-400/50" />
+                              <span className="w-1 h-1 rounded-full bg-white/35" />
                               {Math.round(msg.agentMeta.toolLog.reduce((s, t) => s + t.durationMs, 0) / 1000)}s
                             </span>
                           </div>
@@ -605,9 +605,9 @@ export default function RizAIPage() {
         <div className="max-w-3xl mx-auto">
           <div className="relative group">
             {/* Focus glow */}
-            <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-indigo-500/10 via-indigo-500/5 to-indigo-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 blur-sm" />
+            <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-white/[0.03] via-white/[0.015] to-white/[0.03] opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 blur-sm" />
             <div className="relative flex items-end gap-2.5 bg-[#0d1117] border border-white/[0.08] rounded-2xl px-4 py-3
-              focus-within:border-indigo-500/20 transition-all shadow-xl shadow-black/20">
+              focus-within:border-white/15 transition-all shadow-xl shadow-black/20">
               <textarea
                 ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown} onInput={handleTextareaInput}
@@ -625,9 +625,9 @@ export default function RizAIPage() {
                   </button>
                 )}
                 <button onClick={() => sendMessage(input)} disabled={!input.trim() || isLoading}
-                  className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center
-                    hover:bg-indigo-500 transition-all disabled:opacity-20 disabled:cursor-not-allowed
-                    shadow-lg shadow-indigo-600/20">
+                  className="w-8 h-8 rounded-lg bg-[#232d3e] text-white flex items-center justify-center
+                    hover:bg-[#2d3a4d] transition-all disabled:opacity-20 disabled:cursor-not-allowed
+                    shadow-lg shadow-black/25">
                   <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
                 </button>
               </div>

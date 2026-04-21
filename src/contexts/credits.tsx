@@ -40,7 +40,7 @@ export function CreditProvider({
       const res = await (originalFetchRef.current ?? window.fetch)("/api/credits");
       if (res.ok) {
         const data = await res.json();
-        setCredits(data.balance ?? 0);
+        setCredits(data.credits ?? 0);
       }
     } catch {
       // silently fail

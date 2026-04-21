@@ -81,7 +81,7 @@ function CopilotStepCard({ step }: { step: StepEvent }) {
 
   return (
     <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-white/[0.07] bg-white/[0.03]">
-      <div className="shrink-0 w-5 h-5 rounded-full bg-indigo-600/60 flex items-center justify-center mt-0.5">
+      <div className="shrink-0 w-5 h-5 rounded-full bg-white/[0.12] flex items-center justify-center mt-0.5">
         <span className="text-[10px] text-white font-bold">{step.stepNumber}</span>
       </div>
       <div className="flex-1 min-w-0">
@@ -124,6 +124,7 @@ const STAGES: { id: CounselorStage; label: string; icon: string }[] = [
 ];
 
 const OPENING_MESSAGE = "Hello, I'd like your help applying to universities.";
+const AUTO_CONTINUE = "__counselor_auto_continue__";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -746,7 +747,7 @@ export default function CounselorPage() {
 
             <div className="w-px h-4 bg-white/[0.08]" />
 
-            <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-600">
+            <div className="flex items-center justify-center w-6 h-6 rounded-md bg-[#232d3e]">
               <span className="material-symbols-outlined text-white text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                 support_agent
               </span>
@@ -761,7 +762,7 @@ export default function CounselorPage() {
                 return (
                   <div key={s.id} className="flex items-center gap-1">
                     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium transition-all ${
-                      isActive ? "bg-indigo-500/20 text-indigo-300" :
+                      isActive ? "bg-white/[0.08] text-white/60" :
                       isDone ? "text-emerald-400/70" :
                       "text-white/20"
                     }`}>
@@ -801,15 +802,15 @@ export default function CounselorPage() {
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "user" ? (
-                    <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-indigo-600 text-white text-[13px] leading-relaxed">
+                    <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-[#232d3e] text-white text-[13px] leading-relaxed">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                     </div>
                   ) : (
                     <div className="max-w-[90%] w-full space-y-2">
                       {/* Agent indicator */}
                       <div className="flex items-center gap-1.5 mb-1">
-                        <div className="w-5 h-5 rounded-md bg-indigo-600/60 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-[11px] text-indigo-300"
+                        <div className="w-5 h-5 rounded-md bg-white/[0.12] flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[11px] text-white/60"
                             style={{ fontVariationSettings: "'FILL' 1" }}>support_agent</span>
                         </div>
                         <span className="text-[10px] text-white/30 font-medium">Counselor</span>
@@ -902,7 +903,7 @@ export default function CounselorPage() {
                 {startableApps.length === 1 ? (
                   <button
                     onClick={() => startAssistedApplication(startableApps[0].id)}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#232d3e] hover:bg-[#2d3a4d]
                       text-white text-[13px] font-semibold transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">smart_toy</span>
@@ -915,10 +916,10 @@ export default function CounselorPage() {
                       <button
                         key={app.id}
                         onClick={() => { setActiveApplicationId(app.id); startAssistedApplication(app.id); }}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-indigo-500/30
-                          bg-indigo-600/10 hover:bg-indigo-600/20 text-white text-[12px] font-medium transition-colors text-left"
+                        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/15
+                          bg-white/[0.05] hover:bg-white/[0.08] text-white text-[12px] font-medium transition-colors text-left"
                       >
-                        <span className="material-symbols-outlined text-[14px] text-indigo-400 shrink-0">smart_toy</span>
+                        <span className="material-symbols-outlined text-[14px] text-white/40 shrink-0">smart_toy</span>
                         <div className="flex-1 min-w-0">
                           <p className="truncate">{app.university}</p>
                           <p className="text-white/40 text-[10px] truncate">{app.program}</p>
@@ -933,7 +934,7 @@ export default function CounselorPage() {
 
             {/* ── Input ── */}
             <div className="shrink-0 px-4 pb-4 pt-2 border-t border-white/[0.06]">
-              <div className="flex items-end gap-2 px-3 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] focus-within:border-indigo-500/40 transition-colors">
+              <div className="flex items-end gap-2 px-3 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] focus-within:border-white/20 transition-colors">
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -950,7 +951,7 @@ export default function CounselorPage() {
                 <button
                   onClick={() => sendMessage(input)}
                   disabled={!input.trim() || isLoading}
-                  className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500
+                  className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#232d3e] hover:bg-[#2d3a4d]
                     disabled:opacity-30 disabled:cursor-not-allowed text-white transition-colors shrink-0"
                 >
                   <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -983,15 +984,15 @@ export default function CounselorPage() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {copilotActive && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                      <span className="text-[10px] text-indigo-300 font-medium">Guide active</span>
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/15">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/50 animate-pulse" />
+                      <span className="text-[10px] text-white/60 font-medium">Guide active</span>
                     </div>
                   )}
                   {currentPortalUrl && (
                     <a href={currentPortalUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600/30
-                        border border-indigo-500/30 text-indigo-300 hover:text-indigo-200 text-[10px] font-medium transition-colors">
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/[0.07] hover:bg-white/[0.10]
+                        border border-white/15 text-white/60 hover:text-white/80 text-[10px] font-medium transition-colors">
                       <span className="material-symbols-outlined text-[12px]">open_in_new</span>
                       Open in my browser
                     </a>
@@ -1025,7 +1026,7 @@ export default function CounselorPage() {
                   />
                 ) : isComputerLoading ? (
                   <div className="flex flex-col items-center justify-center h-full gap-3">
-                    <span className="material-symbols-outlined text-[32px] text-indigo-400 animate-spin">progress_activity</span>
+                    <span className="material-symbols-outlined text-[32px] text-white/40 animate-spin">progress_activity</span>
                     <p className="text-[12px] text-white/50">{browserStatus || "Opening application portal…"}</p>
                     <p className="text-[10px] text-white/25 text-center max-w-[220px]">
                       This takes a few seconds — we're launching a secure browser session.
@@ -1086,7 +1087,7 @@ export default function CounselorPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl
-                              bg-indigo-600 hover:bg-indigo-500 text-white text-[13px] font-semibold transition-colors"
+                              bg-[#232d3e] hover:bg-[#2d3a4d] text-white text-[13px] font-semibold transition-colors"
                           >
                             <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                             Open Portal Tab — Follow steps in chat
@@ -1147,7 +1148,7 @@ export default function CounselorPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => { setNeedsStudent(null); if (activeApplicationId) resumeAssistedApplication(); }}
-                            className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-medium transition-colors"
+                            className="flex-1 py-2 rounded-lg bg-[#232d3e] hover:bg-[#2d3a4d] text-white text-[12px] font-medium transition-colors"
                           >
                             Resume
                           </button>
@@ -1181,7 +1182,7 @@ export default function CounselorPage() {
                   {isPaused && (
                     <button
                       onClick={() => { setIsPaused(false); if (activeApplicationId) resumeAssistedApplication(); }}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-600/60 hover:bg-indigo-600
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.12] hover:bg-white/[0.18]
                         text-white text-[11px] transition-colors"
                     >
                       <span className="material-symbols-outlined text-[13px]">play_arrow</span>
@@ -1203,7 +1204,7 @@ export default function CounselorPage() {
                 {activeApplicationId && !sessionId && (
                   <button
                     onClick={() => startAssistedApplication(activeApplicationId)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#232d3e] hover:bg-[#2d3a4d]
                       text-white text-[11px] font-medium transition-colors"
                   >
                     <span className="material-symbols-outlined text-[13px]">play_arrow</span>

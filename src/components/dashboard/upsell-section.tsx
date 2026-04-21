@@ -77,6 +77,9 @@ function useRazorpay() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed");
+      if (typeof window.Razorpay !== "function") {
+        throw new Error("Checkout is not ready yet. Please wait a moment and try again.");
+      }
       new window.Razorpay({
         key: data.keyId, amount: data.amount, currency: data.currency,
         name: "RIBRIZ Credits",
@@ -105,13 +108,19 @@ function useRazorpay() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed");
+      if (typeof window.Razorpay !== "function") {
+        throw new Error("Checkout is not ready yet. Please wait a moment and try again.");
+      }
       new window.Razorpay({
         key: data.keyId, amount: data.amount, currency: data.currency,
         name: "RIBRIZ Overseas", description: data.planName,
         order_id: data.orderId,
         handler: (response: RazorpayHandlerResponse) => {
           setLoadingId(null);
-          verifyAndActivate(response, planId, () => setConfirmingId(null));
+          verifyAndActivate(response, planId, () => {
+            setConfirmingId(null);
+            window.location.reload();
+          });
         },
         theme: { color: "#3525cd" },
         modal: { ondismiss: () => setLoadingId(null) },
