@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -18,6 +18,12 @@ const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
 export function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [demoStep, setDemoStep] = useState(0);
+  useEffect(() => {
+    const durations = [4000, 2800, 5200, 4500];
+    const t = setTimeout(() => setDemoStep(s => (s + 1) % 4), durations[demoStep]);
+    return () => clearTimeout(t);
+  }, [demoStep]);
 
   return (
     <div className="min-h-screen bg-white text-[#191c1e] overflow-x-hidden">
@@ -301,6 +307,502 @@ export function LandingPage() {
           </motion.div>
         </section>
 
+        {/* ── COUNSELLOR DEMO ─────────────────────────────── */}
+        <section className="py-24 md:py-32 px-5 md:px-8" style={{ background: "#080b10" }}>
+          <div className="max-w-6xl mx-auto">
+
+            {/* Header */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger} className="text-center mb-14">
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-5" style={{ background: "rgba(239,68,68,0.12)", color: "#f87171", border: "1px solid rgba(239,68,68,0.22)" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse inline-block" />
+                Live Feature Demo — Watch it happen
+              </motion.div>
+              <motion.h2 variants={fadeUp} className="text-3xl md:text-5xl font-extrabold tracking-tighter font-headline text-white leading-[1.05] mb-5">
+                From profile scan to offer letter —
+                <br />your counsellor does it live
+              </motion.h2>
+              <motion.p variants={fadeUp} className="text-base max-w-xl mx-auto leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>
+                Watch how RIBRIZ analyses your profile, opens the real application portal, fills your forms with AI, and gets you an offer letter — all in one session.
+              </motion.p>
+            </motion.div>
+
+            {/* Step selector */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-wrap items-center justify-center gap-2 mb-10">
+              {([
+                { label: "Analyse Profile", icon: "manage_search" },
+                { label: "Open Portal",     icon: "language" },
+                { label: "Fill & Apply",    icon: "edit_note" },
+                { label: "Offer Letter",    icon: "mark_email_read" },
+              ] as { label: string; icon: string }[]).map(({ label, icon }, i) => (
+                <button
+                  key={label}
+                  onClick={() => setDemoStep(i)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300"
+                  style={{
+                    background: demoStep === i ? "rgba(53,37,205,0.3)" : "rgba(255,255,255,0.05)",
+                    color: demoStep === i ? "#bfc1ff" : "rgba(255,255,255,0.35)",
+                    border: `1px solid ${demoStep === i ? "rgba(53,37,205,0.5)" : "rgba(255,255,255,0.08)"}`,
+                  }}
+                >
+                  {demoStep > i
+                    ? <span className="material-symbols-outlined text-sm" style={{ color: "#4ade80" }}>check_circle</span>
+                    : <span className="material-symbols-outlined text-sm">{icon}</span>
+                  }
+                  {label}
+                  {i < 3 && <span className="material-symbols-outlined text-sm hidden sm:inline" style={{ color: "rgba(255,255,255,0.2)" }}>chevron_right</span>}
+                </button>
+              ))}
+            </motion.div>
+
+            {/* App mockup */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} className="relative">
+
+              {/* Ambient glow */}
+              <div className="absolute -inset-10 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(53,37,205,0.16), transparent 65%)" }} />
+
+              {/* Device frame */}
+              <div className="relative rounded-xl overflow-hidden shadow-2xl" style={{ border: "1px solid rgba(255,255,255,0.1)", background: "#0f0f0f" }}>
+
+                {/* ── Top nav bar — breadcrumb updates per step ── */}
+                <div className="flex items-center gap-3 px-4 py-3" style={{ background: "#141414", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                  <button className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <span className="material-symbols-outlined text-base" style={{ color: "rgba(255,255,255,0.5)" }}>arrow_back</span>
+                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.1)" }}>
+                      <span className="material-symbols-outlined text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>support_agent</span>
+                    </div>
+                    <span className="text-sm font-semibold text-white">Counselor</span>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2 overflow-x-auto">
+                    {(["Intake", "Analysis", "Shortlist", "Applying", "Done"] as const).map((label, i) => {
+                      const activeIdx = [0, 1, 3, 4][demoStep];
+                      const isDone = i < activeIdx;
+                      const isActive = i === activeIdx;
+                      return (
+                        <div key={label} className="flex items-center gap-1 flex-shrink-0">
+                          {i > 0 && <span className="material-symbols-outlined text-sm" style={{ color: "rgba(255,255,255,0.18)" }}>chevron_right</span>}
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-500" style={{ background: isActive ? "rgba(53,37,205,0.25)" : "transparent", border: isActive ? "1px solid rgba(53,37,205,0.4)" : "1px solid transparent" }}>
+                            {isDone ? <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#22c55e" }}><span className="material-symbols-outlined text-white" style={{ fontSize: "9px" }}>check</span></div>
+                              : isActive ? <span className="material-symbols-outlined text-sm" style={{ color: "#bfc1ff" }}>radio_button_checked</span>
+                              : <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ border: "1.5px solid rgba(255,255,255,0.18)" }} />}
+                            <span className="text-[11px] font-medium" style={{ color: isActive ? "#bfc1ff" : isDone ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)" }}>{label}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Animated step content ── */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={demoStep}
+                    className="flex"
+                    style={{ minHeight: "500px" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35 }}
+                  >
+
+                    {/* ===== STEP 0: ANALYSE PROFILE ===== */}
+                    {demoStep === 0 && <>
+                      <div className="flex flex-col w-full md:w-[28%] md:flex-shrink-0 md:border-r" style={{ background: "#0f0f0f", borderColor: "rgba(255,255,255,0.07)" }}>
+                        <div className="flex-1 p-4 flex flex-col gap-3 overflow-hidden">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(53,37,205,0.3)" }}>
+                              <span className="material-symbols-outlined text-sm" style={{ color: "#bfc1ff" }}>support_agent</span>
+                            </div>
+                            <span className="text-xs font-semibold text-white">RIBRIZ Counselor</span>
+                            <span className="flex items-center gap-1 text-[10px]" style={{ color: "#4ade80" }}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />typing…
+                            </span>
+                          </div>
+                          <div className="text-xs leading-relaxed space-y-3" style={{ color: "rgba(255,255,255,0.7)" }}>
+                            <p>Let me scan your profile before we begin…</p>
+                            <div className="space-y-2.5">
+                              {([
+                                { label: "Academic records", detail: "GPA 8.0 / 10", loading: false },
+                                { label: "Language score",  detail: "IELTS 8.0",     loading: false },
+                                { label: "Financial plan",  detail: "₹10–20L/year",  loading: false },
+                                { label: "Completeness",   detail: "100%",           loading: false },
+                                { label: "Matching programs", detail: "scanning…",   loading: true  },
+                              ] as { label: string; detail: string; loading: boolean }[]).map(item => (
+                                <div key={item.label} className="flex items-center gap-2">
+                                  {item.loading
+                                    ? <div className="w-4 h-4 rounded-full border-2 border-transparent animate-spin flex-shrink-0" style={{ borderTopColor: "#bfc1ff" }} />
+                                    : <span className="material-symbols-outlined text-base flex-shrink-0" style={{ color: "#4ade80" }}>check_circle</span>}
+                                  <span className="text-[11px] flex-1" style={{ color: item.loading ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.75)" }}>{item.label}</span>
+                                  <span className="text-[10px] font-semibold flex-shrink-0" style={{ color: item.loading ? "#bfc1ff" : "rgba(255,255,255,0.38)" }}>{item.detail}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="px-3 py-2.5 rounded-xl text-xs" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.18)" }}>Waiting for analysis…</div>
+                        </div>
+                      </div>
+                      <div className="hidden md:flex flex-col flex-1 overflow-hidden" style={{ background: "#0a0d12" }}>
+                        <div className="px-5 py-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-bold text-white">Profile Analysis</span>
+                            <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "rgba(74,222,128,0.15)", color: "#4ade80" }}>100% Complete</span>
+                          </div>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
+                            <div className="h-full rounded-full" style={{ width: "100%", background: "linear-gradient(90deg, #3525cd, #4ade80)" }} />
+                          </div>
+                        </div>
+                        <div className="flex-1 p-5 overflow-y-auto">
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            {([
+                              { icon: "school", label: "GPA", value: "8.0 / 10", sub: "Top 15% applicant", color: "#4ade80" },
+                              { icon: "record_voice_over", label: "IELTS", value: "8.0", sub: "All programs unlocked", color: "#4ade80" },
+                              { icon: "payments", label: "Budget", value: "₹10–20L", sub: "Good range", color: "#facc15" },
+                              { icon: "history_edu", label: "Backlogs", value: "None", sub: "Clean record", color: "#4ade80" },
+                            ] as { icon: string; label: string; value: string; sub: string; color: string }[]).map(m => (
+                              <div key={m.label} className="p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                                <div className="flex items-center gap-1.5 mb-2">
+                                  <span className="material-symbols-outlined text-sm flex-shrink-0" style={{ color: m.color }}>{m.icon}</span>
+                                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>{m.label}</span>
+                                </div>
+                                <div className="text-lg font-extrabold text-white">{m.value}</div>
+                                <div className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.38)" }}>{m.sub}</div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="rounded-xl p-4" style={{ background: "rgba(53,37,205,0.1)", border: "1px solid rgba(53,37,205,0.25)" }}>
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#bfc1ff] animate-pulse inline-block" />
+                              <span className="text-xs font-semibold" style={{ color: "#bfc1ff" }}>Matching universities…</span>
+                            </div>
+                            {([
+                              { name: "University of Leicester", prog: "MSc Data Science & AI", pct: 78 },
+                              { name: "University of Essex",     prog: "MSc AI & Data Science", pct: 72 },
+                              { name: "University of Nottingham",prog: "MSc Data Science",       pct: 68 },
+                            ] as { name: string; prog: string; pct: number }[]).map((u, i) => (
+                              <div key={u.name} className="flex items-center gap-3 mb-2">
+                                <span className="text-[10px] w-3 text-center flex-shrink-0" style={{ color: "rgba(255,255,255,0.3)" }}>{i + 1}</span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[11px] font-semibold text-white truncate">{u.name}</div>
+                                  <div className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>{u.prog}</div>
+                                </div>
+                                <span className="text-sm font-extrabold flex-shrink-0" style={{ color: "#4ade80" }}>{u.pct}%</span>
+                              </div>
+                            ))}
+                            <div className="text-[10px] mt-2 pt-2" style={{ color: "rgba(255,255,255,0.28)", borderTop: "1px solid rgba(255,255,255,0.07)" }}>+ 13 more universities matched</div>
+                          </div>
+                        </div>
+                      </div>
+                    </>}
+
+                    {/* ===== STEP 1: OPEN PORTAL ===== */}
+                    {demoStep === 1 && <>
+                      <div className="flex flex-col w-full md:w-[28%] md:flex-shrink-0 md:border-r" style={{ background: "#0f0f0f", borderColor: "rgba(255,255,255,0.07)" }}>
+                        <div className="flex-1 p-4 flex flex-col gap-3 overflow-hidden">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(53,37,205,0.3)" }}>
+                              <span className="material-symbols-outlined text-sm" style={{ color: "#bfc1ff" }}>support_agent</span>
+                            </div>
+                            <span className="text-xs font-semibold text-white">RIBRIZ Counselor</span>
+                          </div>
+                          <div className="text-xs leading-relaxed space-y-2" style={{ color: "rgba(255,255,255,0.7)" }}>
+                            <p>Your profile is <strong className="text-white">100% complete</strong>. You&apos;re classified as a <strong className="text-white">competitive applicant</strong>.</p>
+                            <p>Best match for your scores and budget:</p>
+                            <div className="p-3 rounded-xl" style={{ background: "rgba(53,37,205,0.15)", border: "1px solid rgba(53,37,205,0.3)" }}>
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="w-5 h-5 rounded flex items-center justify-center text-white font-extrabold text-[9px] flex-shrink-0" style={{ background: "#c8102e" }}>UL</div>
+                                <span className="text-xs font-semibold text-white">University of Leicester</span>
+                              </div>
+                              <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>MSc Data Science &amp; AI · 78% match</div>
+                            </div>
+                            <p className="pt-1 flex items-center gap-2">
+                              <span className="w-3.5 h-3.5 rounded-full border-2 border-transparent animate-spin flex-shrink-0" style={{ borderTopColor: "#bfc1ff" }} />
+                              Opening the application portal now…
+                            </p>
+                          </div>
+                        </div>
+                        <div className="p-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="px-3 py-2.5 rounded-xl text-xs" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.18)" }}>Portal loading…</div>
+                        </div>
+                      </div>
+                      <div className="hidden md:flex flex-col flex-1 overflow-hidden" style={{ background: "#0a0a0a" }}>
+                        <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0" style={{ background: "#111", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                          <span className="material-symbols-outlined text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>arrow_back</span>
+                          <span className="material-symbols-outlined text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>arrow_forward</span>
+                          <span className="material-symbols-outlined text-sm animate-spin" style={{ color: "#bfc1ff" }}>refresh</span>
+                          <div className="flex-1 flex items-center gap-1.5 px-3 py-1 rounded-md mx-2" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                            <span className="material-symbols-outlined text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>lock</span>
+                            <span className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.35)" }}>Finding the application portal for University of Leicester…</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 flex flex-col items-center justify-center gap-5">
+                          <div className="relative w-14 h-14">
+                            <div className="absolute inset-0 rounded-full border-2 border-transparent animate-spin" style={{ borderTopColor: "#bfc1ff", borderRightColor: "rgba(191,193,255,0.3)" }} />
+                            <div className="absolute inset-2 rounded-full flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl" style={{ color: "rgba(255,255,255,0.2)" }}>language</span>
+                            </div>
+                          </div>
+                          <div className="text-center space-y-2">
+                            <p className="text-sm font-medium text-white">Finding the application portal for University of Leicester…</p>
+                            <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>This takes a few seconds — we&apos;re launching a secure browser session.</p>
+                          </div>
+                          <div className="flex gap-1.5">
+                            {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: i === 0 ? "#bfc1ff" : "rgba(255,255,255,0.15)" }} />)}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-end px-4 py-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                          <div className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-white" style={{ background: "rgba(53,37,205,0.25)", border: "1px solid rgba(53,37,205,0.4)" }}>
+                            <span className="material-symbols-outlined text-base">play_arrow</span>
+                            Start Application Guide
+                          </div>
+                        </div>
+                      </div>
+                    </>}
+
+                    {/* ===== STEP 2: FILL & APPLY ===== */}
+                    {demoStep === 2 && <>
+                      <div className="flex flex-col w-full md:w-[28%] md:flex-shrink-0 md:border-r" style={{ background: "#0f0f0f", borderColor: "rgba(255,255,255,0.07)" }}>
+                        <div className="flex-1 overflow-hidden p-4 flex flex-col gap-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(53,37,205,0.3)" }}>
+                              <span className="material-symbols-outlined text-sm" style={{ color: "#bfc1ff" }}>support_agent</span>
+                            </div>
+                            <span className="text-xs font-semibold text-white">RIBRIZ Counselor</span>
+                          </div>
+                          <div className="text-xs leading-relaxed space-y-2" style={{ color: "rgba(255,255,255,0.75)" }}>
+                            <p>Hello Sagar! You&apos;ve already been accepted at <strong className="text-white">Toronto Metropolitan University</strong>.</p>
+                            <p>Now let&apos;s target <strong className="text-white">University of Leicester</strong> — your 78% match.</p>
+                            <div className="space-y-1 pt-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+                              <p>✅ Strong GPA (8/10)</p>
+                              <p>✅ Excellent IELTS (8.0)</p>
+                              <p>✅ No backlogs</p>
+                            </div>
+                            <p className="pt-1">I&apos;m now filling in your <strong className="text-white">Personal Statement</strong> based on your profile data.</p>
+                            <p className="flex items-center gap-2 text-[11px]" style={{ color: "#bfc1ff" }}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#bfc1ff] animate-pulse inline-block" />
+                              Typing your statement…
+                            </p>
+                          </div>
+                        </div>
+                        <div className="p-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                            <span className="text-xs flex-1" style={{ color: "rgba(255,255,255,0.25)" }}>Reply to your counselor…</span>
+                            <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#3525cd" }}>
+                              <span className="material-symbols-outlined text-sm text-white">send</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="hidden md:flex flex-col flex-1 overflow-hidden" style={{ background: "#f5f6f8" }}>
+                        <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0" style={{ background: "#fff", borderBottom: "1px solid #e5e7eb" }}>
+                          <span className="material-symbols-outlined text-sm" style={{ color: "#aaa" }}>arrow_back</span>
+                          <span className="material-symbols-outlined text-sm" style={{ color: "#aaa" }}>refresh</span>
+                          <div className="flex-1 flex items-center gap-1.5 px-3 py-1 rounded-md mx-2" style={{ background: "#f3f4f6", border: "1px solid #e5e7eb" }}>
+                            <span className="material-symbols-outlined text-xs text-green-500">lock</span>
+                            <span className="text-[11px] truncate text-gray-500">apply.le.ac.uk/postgraduate/application/form</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0 text-[10px] font-bold" style={{ background: "rgba(53,37,205,0.1)", color: "#3525cd", border: "1px solid rgba(53,37,205,0.25)" }}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#3525cd] animate-pulse inline-block" />AI Filling
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 px-5 py-2.5 flex-shrink-0" style={{ background: "#003b6f" }}>
+                          <div className="w-6 h-6 rounded flex items-center justify-center text-white font-extrabold text-xs flex-shrink-0" style={{ background: "#c8102e" }}>UL</div>
+                          <span className="text-white text-xs font-semibold">University of Leicester</span>
+                          <span className="text-[10px] ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>Online Application Portal</span>
+                        </div>
+                        <div className="flex items-center px-4 flex-shrink-0 overflow-x-auto" style={{ background: "#fff", borderBottom: "1px solid #e5e7eb" }}>
+                          {(["Personal", "Academic", "Statement", "Documents", "Submit"] as const).map((s, i) => (
+                            <div key={s} className="flex items-center flex-shrink-0">
+                              <div className={`flex items-center gap-1 px-3 py-2.5 text-[11px] font-semibold border-b-2 ${i < 2 ? "border-green-500 text-green-600" : i === 2 ? "border-[#003b6f] text-[#003b6f]" : "border-transparent text-gray-400"}`}>
+                                {i < 2 && <span className="material-symbols-outlined text-xs text-green-500">check_circle</span>}{s}
+                              </div>
+                              {i < 4 && <span className="material-symbols-outlined text-xs text-gray-300">chevron_right</span>}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-sm font-bold text-gray-800">Personal Statement</h3>
+                              <p className="text-[11px] text-gray-500 mt-0.5">Explain your motivations and suitability for this programme</p>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold flex-shrink-0" style={{ background: "rgba(53,37,205,0.08)", color: "#3525cd", border: "1px solid rgba(53,37,205,0.2)" }}>
+                              <span className="material-symbols-outlined text-sm" style={{ color: "#3525cd" }}>auto_fix_high</span>AI writing
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {([
+                              { label: "Full Name",   value: "Sagar Kumar Gupta" },
+                              { label: "Email",       value: "sgupta@ribriz.com" },
+                              { label: "Programme",   value: "MSc Data Science & AI" },
+                              { label: "Entry Year",  value: "September 2027" },
+                            ] as { label: string; value: string }[]).map(f => (
+                              <div key={f.label} className="px-3 py-2 rounded-lg" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                                <div className="flex items-center gap-1 mb-0.5">
+                                  <span className="material-symbols-outlined text-xs text-green-500">check</span>
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-green-600">{f.label}</span>
+                                </div>
+                                <span className="text-[11px] font-medium text-gray-700">{f.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="rounded-lg overflow-hidden" style={{ border: "2px solid #3525cd", boxShadow: "0 0 0 3px rgba(53,37,205,0.1)" }}>
+                            <div className="flex items-center justify-between px-3 py-2" style={{ background: "rgba(53,37,205,0.06)", borderBottom: "1px solid rgba(53,37,205,0.15)" }}>
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#3525cd]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#3525cd] animate-pulse inline-block" />
+                                RIBRIZ AI — typing from your profile
+                              </div>
+                              <span className="text-[10px] text-gray-400">650 / 4000 chars</span>
+                            </div>
+                            <div className="p-3 text-[11px] leading-relaxed text-gray-700 bg-white" style={{ minHeight: "90px" }}>
+                              My academic journey in Computer Science at Vistula University, where I graduated with a GPA of 8/10, has equipped me with a strong foundation in algorithmic thinking and applied mathematics. I am applying to the MSc Data Science &amp; AI programme at the University of Leicester because
+                              <span className="inline-block w-0.5 h-3.5 bg-[#3525cd] align-middle ml-0.5 animate-pulse" />
+                            </div>
+                          </div>
+                          <div className="rounded-lg p-3" style={{ background: "#fff", border: "1px solid #e5e7eb" }}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Documents</p>
+                            {([
+                              { name: "Academic Transcripts",    done: true },
+                              { name: "IELTS Score Report (8.0)", done: true },
+                              { name: "2× Reference Letters",     done: false },
+                            ] as { name: string; done: boolean }[]).map(d => (
+                              <div key={d.name} className="flex items-center gap-2 mb-1.5">
+                                <span className="material-symbols-outlined text-sm flex-shrink-0" style={{ color: d.done ? "#22c55e" : "#f59e0b" }}>{d.done ? "check_circle" : "pending"}</span>
+                                <span className="text-[11px] text-gray-600">{d.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between px-5 py-3 flex-shrink-0" style={{ background: "#fff", borderTop: "1px solid #e5e7eb" }}>
+                          <span className="text-xs text-gray-400">Auto-saving…</span>
+                          <button className="text-xs font-semibold px-4 py-1.5 rounded-lg text-white flex items-center gap-1" style={{ background: "#003b6f" }}>
+                            Submit Application<span className="material-symbols-outlined text-sm">arrow_forward</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>}
+
+                    {/* ===== STEP 3: OFFER LETTER ===== */}
+                    {demoStep === 3 && <>
+                      <div className="flex flex-col w-full md:w-[28%] md:flex-shrink-0 md:border-r" style={{ background: "#0f0f0f", borderColor: "rgba(255,255,255,0.07)" }}>
+                        <div className="flex-1 p-4 flex flex-col gap-3 overflow-hidden">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(53,37,205,0.3)" }}>
+                              <span className="material-symbols-outlined text-sm" style={{ color: "#bfc1ff" }}>support_agent</span>
+                            </div>
+                            <span className="text-xs font-semibold text-white">RIBRIZ Counselor</span>
+                          </div>
+                          <div className="text-xs leading-relaxed space-y-3" style={{ color: "rgba(255,255,255,0.7)" }}>
+                            <div className="p-3 rounded-xl text-center" style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)" }}>
+                              <div className="text-2xl mb-1">🎉</div>
+                              <p className="text-xs font-bold text-white">Application Submitted!</p>
+                              <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>University of Leicester</p>
+                            </div>
+                            <p>Congratulations, Sagar! Your application to <strong className="text-white">MSc Data Science &amp; AI</strong> at the University of Leicester has been submitted.</p>
+                            <p>You&apos;ve received a <strong className="text-white">Conditional Offer of Admission</strong>:</p>
+                            <div className="space-y-1.5 text-[11px]">
+                              <p>✅ Programme: MSc Data Science & AI</p>
+                              <p>✅ Start: September 2027</p>
+                              <p>⏳ Upload final degree certificate to confirm</p>
+                            </div>
+                            <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>Shall we apply to the next university on your shortlist?</p>
+                          </div>
+                        </div>
+                        <div className="p-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)" }}>
+                            <span className="text-xs flex-1 text-green-400 font-medium">Apply to next university →</span>
+                            <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#22c55e" }}>
+                              <span className="material-symbols-outlined text-sm text-white">send</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="hidden md:flex flex-col flex-1 overflow-hidden" style={{ background: "#f5f6f8" }}>
+                        <div className="flex items-center gap-2 px-3 py-2 flex-shrink-0" style={{ background: "#fff", borderBottom: "1px solid #e5e7eb" }}>
+                          <span className="material-symbols-outlined text-sm" style={{ color: "#aaa" }}>arrow_back</span>
+                          <div className="flex-1 flex items-center gap-1.5 px-3 py-1 rounded-md mx-2" style={{ background: "#f3f4f6", border: "1px solid #e5e7eb" }}>
+                            <span className="material-symbols-outlined text-xs text-green-500">lock</span>
+                            <span className="text-[11px] truncate text-gray-500">apply.le.ac.uk/offer/confirmation/2027</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                          <div className="flex items-center gap-3 px-5 py-3 flex-shrink-0" style={{ background: "#16a34a" }}>
+                            <span className="material-symbols-outlined text-xl text-white flex-shrink-0">check_circle</span>
+                            <div>
+                              <p className="text-sm font-bold text-white">Application Submitted Successfully</p>
+                              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.75)" }}>Ref: UOL-2027-DS-48291 · Submitted just now</p>
+                            </div>
+                          </div>
+                          <div className="px-6 py-5">
+                            <div className="flex items-center gap-3 mb-5 pb-4" style={{ borderBottom: "2px solid #003b6f" }}>
+                              <div className="w-10 h-10 rounded flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0" style={{ background: "#c8102e" }}>UL</div>
+                              <div>
+                                <div className="text-sm font-extrabold text-gray-800">University of Leicester</div>
+                                <div className="text-[11px] text-gray-500">Office of Admissions · Leicester, UK</div>
+                              </div>
+                            </div>
+                            <div className="text-[11px] text-gray-500 mb-3">23 April 2026</div>
+                            <div className="text-sm font-bold text-gray-800 mb-1">Conditional Offer of Admission</div>
+                            <p className="text-[11px] text-gray-600 mb-4">Dear Sagar Kumar Gupta,</p>
+                            <p className="text-[11px] text-gray-600 leading-relaxed mb-4">We are delighted to offer you a conditional place on the following programme of study:</p>
+                            <div className="p-4 rounded-xl mb-4" style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}>
+                              <div className="text-sm font-bold text-gray-800 mb-1">MSc Data Science and Artificial Intelligence</div>
+                              <div className="text-[11px] text-gray-500 space-y-0.5">
+                                <div>Faculty of Computing &amp; Engineering · Full-time · 12 months</div>
+                                <div className="font-semibold text-gray-700 mt-1">Start date: September 2027</div>
+                              </div>
+                            </div>
+                            <p className="text-[11px] font-semibold text-gray-700 mb-2">Conditions of Offer:</p>
+                            <div className="space-y-2 mb-5">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-sm text-green-500 flex-shrink-0">check_circle</span>
+                                <span className="text-[11px] text-gray-600">IELTS 8.0 — <strong className="text-green-600">Verified ✓</strong></span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-sm flex-shrink-0" style={{ color: "#f59e0b" }}>pending</span>
+                                <span className="text-[11px] text-gray-600">Provide final degree certificate (within 60 days)</span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white" style={{ background: "#003b6f" }}>Accept Offer</button>
+                              <button className="px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-1" style={{ border: "1px solid #e5e7eb" }}>
+                                <span className="material-symbols-outlined text-sm">download</span>Download PDF
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>}
+
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Caption */}
+              <div className="flex flex-col md:flex-row gap-4 mt-5 md:items-center md:justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#3525cd" }} />
+                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>AI counsellor reads your full profile and guides every decision in plain language</span>
+                </div>
+                <div className="flex items-center gap-2 md:justify-end">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "rgba(255,255,255,0.2)" }} />
+                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>Real portal opens, forms get filled, offer letter arrives — all in one session</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CTA */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mt-12">
+              <Link href="/signup" className="inline-flex items-center gap-2 bg-white text-[#3525cd] px-8 py-4 rounded-full font-bold hover:bg-white/90 transition-all shadow-lg">
+                Start Your Counsellor Session
+                <span className="material-symbols-outlined text-xl">arrow_forward</span>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+
         {/* ── TRUST BAR — scrolling logos ──────────────────── */}
         <section className="py-12 bg-white border-y border-black/[0.06] overflow-hidden">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#777587] text-center mb-8">Our students got admitted to</p>
@@ -536,6 +1038,7 @@ export function LandingPage() {
             </motion.div>
           </div>
         </section>
+
 
         {/* ── DESTINATIONS ────────────────────────────────── */}
         <section className="py-24 md:py-32 px-5 md:px-8 bg-white">
