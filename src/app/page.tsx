@@ -128,9 +128,14 @@ export default function Page() {
             contactPoint: {
               "@type": "ContactPoint",
               email: "sgupta@ribriz.com",
+              telephone: "+91-8076823071",
               contactType: "customer support",
             },
-            sameAs: [],
+            sameAs: [
+              "https://www.instagram.com/ribrizventures/",
+              "https://www.facebook.com/people/Ribriz-Overseas/61573363714278/",
+              "https://www.linkedin.com/company/ribriz",
+            ],
           }),
         }}
       />

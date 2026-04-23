@@ -3,14 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Check, GraduationCap, BarChart3, FileText } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Check, GraduationCap, BarChart3, FileText, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 
-type Step = "personal" | "details" | "whatsapp" | "email" | "email-otp";
+type Step = "personal" | "details" | "whatsapp" | "whatsapp-otp" | "email" | "email-otp";
 type Education = "12th" | "bachelor" | "masters";
 
 const progressMap: Record<Step, number> = {
-  personal: 0, details: 1, whatsapp: 2, email: 3, "email-otp": 3,
+  personal: 0, details: 1, whatsapp: 2, "whatsapp-otp": 2, email: 3, "email-otp": 3,
 };
 
 const educationOptions: { value: Education; label: string; sublabel: string }[] = [
@@ -28,6 +28,20 @@ const FEATURES = [
 const DESTS = [
   { f: "🇬🇧", n: "UK" }, { f: "🇨🇦", n: "Canada" }, { f: "🇦🇺", n: "Australia" },
   { f: "🇩🇪", n: "Germany" }, { f: "🇺🇸", n: "USA" },
+];
+
+const COUNTRY_CODES = [
+  { code: "91", label: "🇮🇳 +91", name: "India" },
+  { code: "1", label: "🇺🇸 +1", name: "USA / Canada" },
+  { code: "44", label: "🇬🇧 +44", name: "UK" },
+  { code: "61", label: "🇦🇺 +61", name: "Australia" },
+  { code: "49", label: "🇩🇪 +49", name: "Germany" },
+  { code: "971", label: "🇦🇪 +971", name: "UAE" },
+  { code: "65", label: "🇸🇬 +65", name: "Singapore" },
+  { code: "60", label: "🇲🇾 +60", name: "Malaysia" },
+  { code: "94", label: "🇱🇰 +94", name: "Sri Lanka" },
+  { code: "977", label: "🇳🇵 +977", name: "Nepal" },
+  { code: "880", label: "🇧🇩 +880", name: "Bangladesh" },
 ];
 
 const inputCls =
@@ -78,6 +92,40 @@ function OTPBox({
             : "border-[#E5E7EB] bg-[#F9FAFB] focus:border-primary focus:ring-[3px] focus:ring-primary/[0.08] focus:bg-white"
         }`}
       />
+    </motion.div>
+  );
+}
+
+// ── OTP Row ───────────────────────────────────────────────
+
+function OTPRow({
+  otp, refs, shake, error, onChange, onKeyDown, onPaste,
+}: {
+  otp: string[];
+  refs: React.MutableRefObject<(HTMLInputElement | null)[]>;
+  shake: boolean;
+  error: string;
+  onChange: (i: number, v: string) => void;
+  onKeyDown: (i: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onPaste: (e: React.ClipboardEvent) => void;
+}) {
+  return (
+    <motion.div
+      className="flex items-center gap-2"
+      animate={shake ? { x: [0, -9, 9, -7, 7, -4, 4, 0] } : { x: 0 }}
+      transition={{ duration: 0.38, ease: "easeOut" }}
+    >
+      <div className="flex gap-2 flex-1">
+        {otp.slice(0, 3).map((d, i) => (
+          <OTPBox key={i} digit={d} i={i} refs={refs} onChange={onChange} onKeyDown={onKeyDown} onPaste={onPaste} hasError={!!error} />
+        ))}
+      </div>
+      <span className="w-5 h-[2px] rounded-full bg-[#D1D5DB] shrink-0" />
+      <div className="flex gap-2 flex-1">
+        {otp.slice(3).map((d, i) => (
+          <OTPBox key={i + 3} digit={d} i={i + 3} refs={refs} onChange={onChange} onKeyDown={onKeyDown} onPaste={onPaste} hasError={!!error} />
+        ))}
+      </div>
     </motion.div>
   );
 }
@@ -157,6 +205,46 @@ function ErrorMsg({ msg }: { msg: string }) {
   );
 }
 
+// ── Phone Input with Country Code ─────────────────────────
+
+function PhoneInput({
+  countryCode, phone,
+  onCountryChange, onPhoneChange,
+  autoFocus,
+}: {
+  countryCode: string;
+  phone: string;
+  onCountryChange: (v: string) => void;
+  onPhoneChange: (v: string) => void;
+  autoFocus?: boolean;
+}) {
+  return (
+    <div className="flex items-center w-full rounded-full border border-[#E2E4E9] bg-white focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/[0.07] transition-all duration-200 overflow-hidden">
+      <div className="relative flex items-center shrink-0 border-r border-[#E2E4E9]">
+        <select
+          value={countryCode}
+          onChange={e => onCountryChange(e.target.value)}
+          className="appearance-none pl-4 pr-7 py-[13px] text-[15px] text-[#111827] bg-transparent focus:outline-none cursor-pointer"
+        >
+          {COUNTRY_CODES.map(c => (
+            <option key={c.code} value={c.code}>{c.label} — {c.name}</option>
+          ))}
+        </select>
+        <ChevronDown size={13} className="absolute right-2 text-[#9CA3AF] pointer-events-none" />
+      </div>
+      <input
+        type="tel"
+        value={phone}
+        onChange={e => onPhoneChange(e.target.value.replace(/\D/g, ""))}
+        placeholder="WhatsApp number"
+        autoFocus={autoFocus}
+        autoComplete="tel"
+        className="flex-1 min-w-0 px-4 py-[13px] text-[15px] text-[#111827] placeholder:text-[#9CA3AF] bg-transparent focus:outline-none"
+      />
+    </div>
+  );
+}
+
 // ── Signup Page ───────────────────────────────────────────
 
 export default function SignupPage() {
@@ -170,10 +258,14 @@ export default function SignupPage() {
   const [dob, setDob] = useState("");
   const [city, setCity] = useState("");
   const [education, setEducation] = useState<Education | "">("");
+  const [countryCode, setCountryCode] = useState("91");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+
   const [otp, setOtp] = useState(Array(6).fill(""));
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const [waOtp, setWaOtp] = useState(Array(6).fill(""));
+  const waRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
@@ -181,31 +273,42 @@ export default function SignupPage() {
 
   const progressIndex = progressMap[step];
   const otpStr = otp.join("");
+  const waOtpStr = waOtp.join("");
   const maxDob = new Date(Date.now() - 13 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const fullPhone = countryCode + phone.trim();
 
-  const otpChange = (i: number, v: string) => {
-    const d = v.replace(/\D/g, "").slice(-1);
-    setOtp(o => { const n = [...o]; n[i] = d; return n; });
-    setError("");
-    if (d && i < 5) refs.current[i + 1]?.focus();
-  };
+  const makeOtpHandlers = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    refsObj: React.MutableRefObject<(HTMLInputElement | null)[]>
+  ) => ({
+    onChange: (i: number, v: string) => {
+      const d = v.replace(/\D/g, "").slice(-1);
+      setter(o => { const n = [...o]; n[i] = d; return n; });
+      setError("");
+      if (d && i < 5) refsObj.current[i + 1]?.focus();
+    },
+    onKeyDown: (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Backspace") {
+        setter(o => {
+          if (o[i]) { const n = [...o]; n[i] = ""; return n; }
+          if (i > 0) { refsObj.current[i - 1]?.focus(); const n = [...o]; n[i - 1] = ""; return n; }
+          return o;
+        });
+      }
+    },
+    onPaste: (e: React.ClipboardEvent) => {
+      const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+      if (!p.length) return;
+      e.preventDefault();
+      const next = [...p.split(""), ...Array(6).fill("")].slice(0, 6);
+      setter(next);
+      const f = next.findIndex(d => !d);
+      refsObj.current[f === -1 ? 5 : f]?.focus();
+    },
+  });
 
-  const otpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0) {
-      setOtp(o => { const n = [...o]; n[i - 1] = ""; return n; });
-      refs.current[i - 1]?.focus();
-    }
-  };
-
-  const otpPaste = (e: React.ClipboardEvent) => {
-    const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (!p.length) return;
-    e.preventDefault();
-    const next = [...p.split(""), ...Array(6).fill("")].slice(0, 6);
-    setOtp(next);
-    const f = next.findIndex(d => !d);
-    refs.current[f === -1 ? 5 : f]?.focus();
-  };
+  const emailHandlers = makeOtpHandlers(setOtp, refs);
+  const waHandlers = makeOtpHandlers(setWaOtp, waRefs);
 
   const post = async (url: string, body: object) => {
     const ctrl = new AbortController();
@@ -233,6 +336,8 @@ export default function SignupPage() {
   const goNext = (next: Step) => { setDir(1); setError(""); setStep(next); };
   const goBack = (prev: Step) => { setDir(-1); setError(""); setStep(prev); };
 
+  const triggerShake = () => { setShake(true); setTimeout(() => setShake(false), 500); };
+
   const handlePersonalNext = (e: { preventDefault(): void }) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) { setError("Please enter your first and last name."); return; }
@@ -247,9 +352,38 @@ export default function SignupPage() {
     goNext("whatsapp");
   };
 
-  const handleWhatsappNext = (e: { preventDefault(): void }) => {
+  const handleSendWaOTP = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    goNext("email");
+    if (!phone.trim()) { goNext("email"); return; }
+    if (phone.trim().length < 7) { setError("Please enter a valid phone number."); return; }
+    setError("");
+    setWaOtp(Array(6).fill(""));
+    setLoading(true);
+    try {
+      const { ok, data } = await post("/api/auth/whatsapp/send", {
+        phone: fullPhone,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        dob, city: city.trim(), education,
+      });
+      if (!ok) setError(data.error || "Failed to send OTP. Please try again.");
+      else goNext("whatsapp-otp");
+    } finally { setLoading(false); }
+  };
+
+  const handleVerifyWaOTP = async (e: { preventDefault(): void }) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const { ok, data } = await post("/api/auth/whatsapp/verify", { otp: waOtpStr });
+      if (!ok) {
+        setError(data.error || "Incorrect code. Please try again.");
+        triggerShake();
+        return;
+      }
+      goNext("email");
+    } finally { setLoading(false); }
   };
 
   const handleSendEmailOTP = async (e: { preventDefault(): void }) => {
@@ -261,7 +395,8 @@ export default function SignupPage() {
       const { ok, data } = await post("/api/auth/otp/send", {
         email, type: "signup",
         name: `${firstName.trim()} ${lastName.trim()}`,
-        phone: phone.trim(), dob, city: city.trim(), education,
+        phone: phone.trim() ? fullPhone : "",
+        dob, city: city.trim(), education,
       });
       if (!ok) setError(data.error || "Failed to send verification code.");
       else goNext("email-otp");
@@ -276,8 +411,7 @@ export default function SignupPage() {
       const { ok, data } = await post("/api/auth/otp/verify", { otp: otpStr });
       if (!ok) {
         setError(data.error || "Verification failed. Please try again.");
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
+        triggerShake();
         return;
       }
       router.push(data.redirect ?? "/onboarding");
@@ -505,17 +639,23 @@ export default function SignupPage() {
               <motion.div key="whatsapp" custom={dir} variants={stepVars} initial="enter" animate="center" exit="exit" transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}>
                 <BackBtn onClick={() => goBack("details")} />
                 <div className="mb-6">
-                  <h1 className="text-[32px] font-bold tracking-[-0.5px] text-[#111827] mb-1.5 leading-tight">Stay connected</h1>
-                  <p className="text-[14px] text-[#6B7280]">Get updates where it matters.</p>
+                  <h1 className="text-[32px] font-bold tracking-[-0.5px] text-[#111827] mb-1.5 leading-tight">Verify WhatsApp</h1>
+                  <p className="text-[14px] text-[#6B7280]">We&apos;ll send you a one-time code to confirm.</p>
                 </div>
-                <form onSubmit={handleWhatsappNext} className="space-y-3">
+                <form onSubmit={handleSendWaOTP} className="space-y-3">
                   <div className="space-y-1.5">
-                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="WhatsApp number (optional)" className={inputCls} autoFocus autoComplete="tel" />
+                    <PhoneInput
+                      countryCode={countryCode}
+                      phone={phone}
+                      onCountryChange={setCountryCode}
+                      onPhoneChange={setPhone}
+                      autoFocus
+                    />
                     <p className="text-[12px] text-[#9CA3AF] px-1">We&apos;ll send application updates here.</p>
                   </div>
                   {error && <ErrorMsg msg={error} />}
-                  <button type="submit" className={btnCls + " mt-2"}>
-                    <span>Continue</span><ArrowRight size={14} />
+                  <button type="submit" disabled={loading} className={btnCls + " mt-2"}>
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <><span>Send OTP</span><ArrowRight size={14} /></>}
                   </button>
                   <button
                     type="button"
@@ -523,6 +663,47 @@ export default function SignupPage() {
                     className="w-full text-[13px] text-[#6B7280] hover:text-primary font-medium py-1 transition-colors text-center"
                   >
                     Skip for now
+                  </button>
+                </form>
+              </motion.div>
+            )}
+
+            {/* ── Step 3b: WhatsApp OTP ── */}
+            {step === "whatsapp-otp" && (
+              <motion.div key="whatsapp-otp" custom={dir} variants={stepVars} initial="enter" animate="center" exit="exit" transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}>
+                <BackBtn onClick={() => { goBack("whatsapp"); setWaOtp(Array(6).fill("")); }} />
+                <div className="mb-6">
+                  <h1 className="text-[32px] font-bold tracking-[-0.5px] text-[#111827] mb-1.5 leading-tight">Enter the code</h1>
+                  <p className="text-[14px] text-[#6B7280]">
+                    Sent via WhatsApp to{" "}
+                    <span className="font-semibold text-[#111827]">+{fullPhone}</span>.
+                  </p>
+                </div>
+                <form onSubmit={handleVerifyWaOTP} className="space-y-4">
+                  <div className="space-y-3">
+                    <OTPRow
+                      otp={waOtp}
+                      refs={waRefs}
+                      shake={shake}
+                      error={error}
+                      onChange={waHandlers.onChange}
+                      onKeyDown={waHandlers.onKeyDown}
+                      onPaste={waHandlers.onPaste}
+                    />
+                  </div>
+                  {error && <ErrorMsg msg={error} />}
+                  <button type="submit" disabled={loading || waOtpStr.length !== 6} className={btnCls + " mt-2"}>
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <><span>Verify &amp; Continue</span><ArrowRight size={14} /></>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendWaOTP}
+                    disabled={loading}
+                    className="w-full text-[13px] text-[#6B7280] hover:text-primary font-medium py-1 transition-colors disabled:cursor-not-allowed text-center"
+                  >
+                    {loading
+                      ? <span className="flex items-center justify-center gap-1.5"><Loader2 size={12} className="animate-spin" />Sending...</span>
+                      : "Didn't receive it? Resend code"}
                   </button>
                 </form>
               </motion.div>
@@ -560,23 +741,15 @@ export default function SignupPage() {
                 </div>
                 <form onSubmit={handleVerifyEmailOTP} className="space-y-4">
                   <div className="space-y-3">
-                    <motion.div
-                      className="flex items-center gap-2"
-                      animate={shake ? { x: [0, -9, 9, -7, 7, -4, 4, 0] } : { x: 0 }}
-                      transition={{ duration: 0.38, ease: "easeOut" }}
-                    >
-                      <div className="flex gap-2 flex-1">
-                        {otp.slice(0, 3).map((d, i) => (
-                          <OTPBox key={i} digit={d} i={i} refs={refs} onChange={otpChange} onKeyDown={otpKey} onPaste={otpPaste} hasError={!!error} />
-                        ))}
-                      </div>
-                      <span className="w-5 h-[2px] rounded-full bg-[#D1D5DB] shrink-0" />
-                      <div className="flex gap-2 flex-1">
-                        {otp.slice(3).map((d, i) => (
-                          <OTPBox key={i + 3} digit={d} i={i + 3} refs={refs} onChange={otpChange} onKeyDown={otpKey} onPaste={otpPaste} hasError={!!error} />
-                        ))}
-                      </div>
-                    </motion.div>
+                    <OTPRow
+                      otp={otp}
+                      refs={refs}
+                      shake={shake}
+                      error={error}
+                      onChange={emailHandlers.onChange}
+                      onKeyDown={emailHandlers.onKeyDown}
+                      onPaste={emailHandlers.onPaste}
+                    />
                   </div>
                   {error && <ErrorMsg msg={error} />}
                   <button type="submit" disabled={loading || otpStr.length !== 6} className={btnCls + " mt-2"}>

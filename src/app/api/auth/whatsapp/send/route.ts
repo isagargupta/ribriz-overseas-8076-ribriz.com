@@ -5,9 +5,6 @@ import crypto from "node:crypto";
 export const runtime = "nodejs";
 
 const WA_COOKIE = "ribriz_wa_otp_state";
-const CHATWOOT_URL = "https://crm.wyriz.dev";
-const CHATWOOT_ACCOUNT_ID = 1;
-const CHATWOOT_INBOX_ID = 5;
 
 function signState(payload: object, secret: string): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -21,74 +18,34 @@ function normalizePhone(raw: string): string {
   return digits;
 }
 
-async function chatwootFetch(url: string, options: RequestInit): Promise<unknown> {
-  const res = await fetch(url, options);
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Chatwoot ${res.status}: ${text.slice(0, 200)}`);
-  return JSON.parse(text);
-}
+async function sendOTPViaAiSensy(phone: string, otp: string): Promise<void> {
+  const apiKey = process.env.AISENSY_API_KEY;
+  const campaignName = process.env.AISENSY_CAMPAIGN_NAME;
+  if (!apiKey) throw new Error("AISENSY_API_KEY not set");
+  if (!campaignName) throw new Error("AISENSY_CAMPAIGN_NAME not set");
 
-async function sendOTPViaChatwoot(phone: string, otp: string, firstName: string): Promise<void> {
-  const token = process.env.CHATWOOT_API_TOKEN;
-  if (!token) throw new Error("CHATWOOT_API_TOKEN not set");
-
-  const headers = {
-    "api_access_token": token,
-    "Content-Type": "application/json",
+  const payload = {
+    apiKey,
+    campaignName,
+    destination: phone,
+    userName: "RIBRIZ",
+    templateParams: [otp],
   };
 
-  // Step 1: Find or create contact
-  const searchData = await chatwootFetch(
-    `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/contacts/search?q=${encodeURIComponent(phone)}`,
-    { headers }
-  ) as { payload?: { id: number }[] };
+  console.log("AiSensy payload:", JSON.stringify({ ...payload, apiKey: "[redacted]" }));
 
-  let contactId: number;
-  if (searchData.payload && searchData.payload.length > 0) {
-    contactId = searchData.payload[0].id;
-  } else {
-    const contactData = await chatwootFetch(
-      `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/contacts`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ name: firstName, phone_number: `+${phone}` }),
-      }
-    ) as { id?: number; payload?: { contact?: { id: number } } };
-    contactId = contactData.id ?? contactData.payload?.contact?.id ?? 0;
-    if (!contactId) throw new Error(`No contact id in response: ${JSON.stringify(contactData)}`);
+  const res = await fetch("https://backend.aisensy.com/campaign/t1/api/v2", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await res.text();
+  console.log(`AiSensy response ${res.status}:`, body);
+
+  if (!res.ok) {
+    throw new Error(`AiSensy error ${res.status}: ${body.slice(0, 200)}`);
   }
-
-  // Step 2: Create new conversation in WhatsApp inbox
-  const convData = await chatwootFetch(
-    `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ inbox_id: CHATWOOT_INBOX_ID, contact_id: contactId }),
-    }
-  ) as { id: number };
-  if (!convData.id) throw new Error(`No conversation id in response: ${JSON.stringify(convData)}`);
-
-  // Step 3: Send OTP via WhatsApp template through Chatwoot
-  await chatwootFetch(
-    `${CHATWOOT_URL}/api/v1/accounts/${CHATWOOT_ACCOUNT_ID}/conversations/${convData.id}/messages`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        content: otp,
-        message_type: "outgoing",
-        private: false,
-        template_params: {
-          name: "ribriz_otp",
-          category: "AUTHENTICATION",
-          language: "en_US",
-          processed_params: { "1": otp },
-        },
-      }),
-    }
-  );
 }
 
 export async function POST(request: Request) {
@@ -134,7 +91,7 @@ export async function POST(request: Request) {
     const otp = String(crypto.randomInt(100000, 999999));
     const otpHash = crypto.createHmac("sha256", secret).update(otp).digest("hex");
 
-    await sendOTPViaChatwoot(normalizedPhone, otp, firstName.trim());
+    await sendOTPViaAiSensy(normalizedPhone, otp);
 
     const state = signState(
       {
